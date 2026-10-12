@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Profit &amp; Loss | BusinessFlow{% endblock %}
+
+{% block content %}
+<style>
+    .pl-page {
+        padding: 24px;
+        color: #172033;
+    }
+
+    .pl-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .pl-header h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        font-weight: 750;
+    }
+
+    .pl-muted {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .pl-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, .035);
+        margin-bottom: 22px;
+        overflow: hidden;
+    }
+
+    .pl-card-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid #edf1f7;
+    }
+
+    .pl-card-header h2 {
+        font-size: 18px;
+        margin: 0 0 5px;
+        font-weight: 700;
+    }
+
+    .pl-card-body {
+        padding: 22px;
+    }
+
+    .pl-filter {
+        display: flex;
+        align-items: end;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .pl-filter-group {
+        min-width: 200px;
+        flex: 1;
+    }
+
+    .pl-filter label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pl-filter select {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid #d7dfeb;
+        border-radius: 8px;
+        background: #fff;
+        font: inherit;
+    }
+
+    .pl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 11px 16px;
+        border: 1px solid #d5deeb;
+        border-radius: 9px;
+        background: #fff;
+        color: #234;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .pl-btn-primary {
+        background: #1769ff;
+        border-color: #1769ff;
+        color: #fff;
+    }
+
+    .pl-btn:hover {
+        opacity: .9;
+    }
+
+    .pl-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .pl-summary {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 13px;
+        padding: 20px;
+        min-width: 0;
+    }
+
+    .pl-summary-label {
+        color: #718096;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .pl-summary-value {
+        font-size: 24px;
+        font-weight: 750;
+        overflow-wrap: anywhere;
+    }
+
+    .pl-summary-note {
+        margin-top: 9px;
+        color: #718096;
+        font-size: 12px;
+    }
+
+    .pl-positive {
+        color: #07845b;
+    }
+
+    .pl-negative {
+        color: #dc3545;
+    }
+
+    .pl-table-wrap {
+        overflow-x: auto;
+    }
+
+    .pl-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1250px;
+    }
+
+    .pl-table th {
+        padding: 14px 15px;
+        text-align: left;
+        background: #f7f9fc;
+        color: #64748b;
+        font-size: 11px;
+        letter-spacing: .35px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .pl-table td {
+        padding: 15px;
+        border-bottom: 1px solid #edf1f7;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .pl-table tbody tr:hover {
+        background: #f8faff;
+    }
+
+    .pl-table tfoot td {
+        background: #f7f9fc;
+        font-weight: 750;
+        border-top: 2px solid #e2e8f0;
+    }
+
+    .pl-number {
+        text-align: right !important;
+    }
+
+    .pl-margin {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        background: #e9f8f0;
+        color: #08784e;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .pl-empty {
+        text-align: center;
+        color: #718096;
+        padding: 32px !important;
+    }
+
+    .pl-chart-container {
+        position: relative;
+        height: 350px;
+    }
+
+    .pl-note {
+        margin-top: 16px;
+        padding: 13px 15px;
+        background: #f0f9ff;
+        border: 1px solid #cfe8fb;
+        color: #315b76;
+        border-radius: 9px;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .pl-chart-error {
+        display: none;
+        padding: 20px;
+        text-align: center;
+        color: #718096;
+        font-size: 13px;
+    }
+
+    @media (max-width: 1100px) {
+        .pl-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 600px) {
+        .pl-page {
+            padding: 14px;
+        }
+
+        .pl-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pl-summary-value {
+            font-size: 22px;
+        }
+
+        .pl-card-body {
+            padding: 15px;
+        }
+    }
+
+    @media print {
+        .pl-filter-card,
+        .pl-no-print,
+        aside,
+        .sidebar {
+            display: none !important;
+        }
+
+        .pl-page {
+            padding: 0;
+        }
+
+        .pl-card,
+        .pl-summary {
+            box-shadow: none;
+            break-inside: avoid;
+        }
+
+        body {
+            background: #fff !important;
+        }
+    }
+</style>
+
+<div class="pl-page">
+
+    <!-- PAGE HEADER -->
+    <div class="pl-header">
+        <div>
+            <h1>Monthly Profit &amp; Loss</h1>
+            <div class="pl-muted">
+                Review sales, product costs, business expenses and estimated net profit.
+            </div>
+        </div>
+
+        <div class="pl-no-print">
+            <button type="button" class="pl-btn" onclick="window.print()">
+                Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- REPORT FILTER -->
+    <div class="pl-card pl-filter-card">
+        <div class="pl-card-header">
+            <h2>Report Filters</h2>
+            <div class="pl-muted">
+                Choose a financial reporting year.
+            </div>
+        </div>
+
+        <div class="pl-card-body">
+            <form method="get" class="pl-filter">
+                <div class="pl-filter-group">
+                    <label for="year">Reporting Year</label>
+
+                    <select name="year" id="year">
+                        {% for year in available_years %}
+                            <option value="{{ year }}"
+                                {% if year == selected_year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="pl-btn pl-btn-primary">
+                    Apply Filter
+                </button>
+
+                <a href="{% url 'monthly_profit_loss_report' %}" class="pl-btn">
+                    Reset
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- YEAR SUMMARY -->
+    <div class="pl-summary-grid">
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Total Sales</div>
+            <div class="pl-summary-value">
+                ₹{{ yearly_sales|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Total invoice value for {{ selected_year }}
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Total Discounts</div>
+            <div class="pl-summary-value">
+                ₹{{ yearly_discount|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Discounts given to customers
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Product Costs</div>
+            <div class="pl-summary-value">
+                ₹{{ yearly_cost|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Recorded cost of items sold
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Profit Before Expenses</div>
+            <div class="pl-summary-value {% if yearly_profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                ₹{{ yearly_profit|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                After discounts and product costs
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Net Sales Before Tax</div>
+            <div class="pl-summary-value">
+                ₹{{ yearly_net_sales|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Subtotal minus discounts
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Business Expenses</div>
+            <div class="pl-summary-value pl-negative">
+                ₹{{ yearly_expenses|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Expenses recorded for {{ selected_year }}
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Estimated Net Profit</div>
+            <div class="pl-summary-value {% if yearly_net_profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                ₹{{ yearly_net_profit|floatformat:2 }}
+            </div>
+            <div class="pl-summary-note">
+                Profit after recorded business expenses
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Net Profit Margin</div>
+            <div class="pl-summary-value">
+                {{ yearly_net_profit_margin|floatformat:2 }}%
+            </div>
+            <div class="pl-summary-note">
+                Estimated net profit divided by net sales
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Invoices</div>
+            <div class="pl-summary-value">
+                {{ yearly_invoice_count }}
+            </div>
+            <div class="pl-summary-note">
+                Invoices recorded during the year
+            </div>
+        </div>
+
+        <div class="pl-summary">
+            <div class="pl-summary-label">Reporting Year</div>
+            <div class="pl-summary-value">
+                {{ selected_year }}
+            </div>
+            <div class="pl-summary-note">
+                January to December
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MONTHLY CHART -->
+    <div class="pl-card">
+        <div class="pl-card-header">
+            <h2>Monthly Financial Comparison</h2>
+            <div class="pl-muted">
+                Compare sales, product costs, expenses and net profit.
+            </div>
+        </div>
+
+        <div class="pl-card-body">
+            <div class="pl-chart-container">
+                <canvas id="profitLossChart"></canvas>
+            </div>
+
+            <div id="profitLossChartError" class="pl-chart-error">
+                The chart could not be loaded. Check your internet connection and refresh.
+            </div>
+
+            <div class="pl-note">
+                <strong>Estimated net profit formula:</strong>
+                Subtotal − discounts − recorded product costs − recorded business expenses.
+                Tax and any unrecorded expenses are excluded.
+            </div>
+        </div>
+    </div>
+
+    <!-- MONTHLY DETAIL TABLE -->
+    <div class="pl-card">
+        <div class="pl-card-header">
+            <h2>Monthly Profit &amp; Loss Details</h2>
+            <div class="pl-muted">
+                Detailed financial breakdown for {{ selected_year }}.
+            </div>
+        </div>
+
+        <div class="pl-table-wrap">
+            <table class="pl-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th class="pl-number">Invoices</th>
+                        <th class="pl-number">Subtotal</th>
+                        <th class="pl-number">Discounts</th>
+                        <th class="pl-number">Net Sales</th>
+                        <th class="pl-number">Product Costs</th>
+                        <th class="pl-number">Profit Before Expenses</th>
+                        <th class="pl-number">Expenses</th>
+                        <th class="pl-number">Estimated Net Profit</th>
+                        <th class="pl-number">Net Margin</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in monthly_data %}
+                        <tr>
+                            <td><strong>{{ row.month_name }}</strong></td>
+                            <td class="pl-number">{{ row.invoice_count }}</td>
+                            <td class="pl-number">₹{{ row.subtotal|floatformat:2 }}</td>
+                            <td class="pl-number">₹{{ row.discount|floatformat:2 }}</td>
+                            <td class="pl-number">₹{{ row.net_sales|floatformat:2 }}</td>
+                            <td class="pl-number">₹{{ row.cost|floatformat:2 }}</td>
+
+                            <td class="pl-number {% if row.profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                                <strong>₹{{ row.profit|floatformat:2 }}</strong>
+                            </td>
+
+                            <td class="pl-number pl-negative">
+                                ₹{{ row.expenses|floatformat:2 }}
+                            </td>
+
+                            <td class="pl-number {% if row.net_profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                                <strong>₹{{ row.net_profit|floatformat:2 }}</strong>
+                            </td>
+
+                            <td class="pl-number">
+                                <span class="pl-margin">
+                                    {{ row.net_profit_margin|floatformat:2 }}%
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="10" class="pl-empty">
+                                No monthly data is available.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td>YEAR TOTAL</td>
+                        <td class="pl-number">{{ yearly_invoice_count }}</td>
+                        <td class="pl-number">₹{{ yearly_subtotal|floatformat:2 }}</td>
+                        <td class="pl-number">₹{{ yearly_discount|floatformat:2 }}</td>
+                        <td class="pl-number">₹{{ yearly_net_sales|floatformat:2 }}</td>
+                        <td class="pl-number">₹{{ yearly_cost|floatformat:2 }}</td>
+
+                        <td class="pl-number {% if yearly_profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                            ₹{{ yearly_profit|floatformat:2 }}
+                        </td>
+
+                        <td class="pl-number pl-negative">
+                            ₹{{ yearly_expenses|floatformat:2 }}
+                        </td>
+
+                        <td class="pl-number {% if yearly_net_profit < 0 %}pl-negative{% else %}pl-positive{% endif %}">
+                            ₹{{ yearly_net_profit|floatformat:2 }}
+                        </td>
+
+                        <td class="pl-number">
+                            {{ yearly_net_profit_margin|floatformat:2 }}%
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart data generated by Django -->
+<script type="application/json" id="profitLossChartData">
+[
+    {% for row in monthly_data %}
+        {
+            "month": "{{ row.month|escapejs }}",
+            "sales": "{{ row.sales|default_if_none:0 }}",
+            "cost": "{{ row.cost|default_if_none:0 }}",
+            "expenses": "{{ row.expenses|default_if_none:0 }}",
+            "net_profit": "{{ row.net_profit|default_if_none:0 }}"
+        }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+(function () {
+    "use strict";
+
+    function initializeProfitLossChart() {
+        const canvas = document.getElementById("profitLossChart");
+        const dataElement = document.getElementById("profitLossChartData");
+        const errorElement = document.getElementById("profitLossChartError");
+
+        if (!canvas || !dataElement) {
+            return;
+        }
+
+        if (typeof Chart === "undefined") {
+            if (errorElement) {
+                errorElement.style.display = "block";
+            }
+            return;
+        }
+
+        let monthlyData;
+
+        try {
+            monthlyData = JSON.parse(dataElement.textContent);
+        } catch (error) {
+            console.error("Unable to parse financial chart data.", error);
+
+            if (errorElement) {
+                errorElement.style.display = "block";
+            }
+            return;
+        }
+
+        const toNumber = function (value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : 0;
+        };
+
+        const formatRupees = function (value) {
+            return "₹" + toNumber(value).toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        };
+
+        new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels: monthlyData.map(function (item) {
+                    return item.month;
+                }),
+                datasets: [
+                    {
+                        label: "Sales",
+                        data: monthlyData.map(function (item) {
+                            return toNumber(item.sales);
+                        }),
+                        backgroundColor: "#4f7df3",
+                        borderRadius: 5,
+                        maxBarThickness: 34
+                    },
+                    {
+                        label: "Product Costs",
+                        data: monthlyData.map(function (item) {
+                            return toNumber(item.cost);
+                        }),
+                        backgroundColor: "#f2a444",
+                        borderRadius: 5,
+                        maxBarThickness: 34
+                    },
+                    {
+                        label: "Business Expenses",
+                        data: monthlyData.map(function (item) {
+                            return toNumber(item.expenses);
+                        }),
+                        backgroundColor: "#dc6475",
+                        borderRadius: 5,
+                        maxBarThickness: 34
+                    },
+                    {
+                        label: "Estimated Net Profit",
+                        data: monthlyData.map(function (item) {
+                            return toNumber(item.net_profit);
+                        }),
+                        backgroundColor: "#20966b",
+                        borderRadius: 5,
+                        maxBarThickness: 34
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ": " +
+                                    formatRupees(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return "₹" +
+                                    Number(value).toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeProfitLossChart
+        );
+    } else {
+        initializeProfitLossChart();
+    }
+})();
+</script>
+{% endblock %}

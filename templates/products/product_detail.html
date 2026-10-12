@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} | BusinessFlow{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">Product Details</h2>
+
+            <p class="text-muted mb-0">
+                View complete product information.
+            </p>
+        </div>
+
+        <div>
+
+            <a
+                href="{% url 'product_edit' product.id %}"
+                class="btn btn-primary"
+            >
+                Edit Product
+            </a>
+
+            <a
+                href="{% url 'product_list' %}"
+                class="btn btn-outline-secondary"
+            >
+                Back to Products
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Product Details Card -->
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <!-- Product Name -->
+            <div class="mb-4">
+
+                <h3 class="mb-1">
+                    {{ product.name }}
+                </h3>
+
+                <span class="text-muted">
+                    SKU: {{ product.sku }}
+                </span>
+
+            </div>
+
+
+            <div class="row g-4">
+
+                <!-- Category -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Category
+                        </small>
+
+                        <h5 class="mb-0 mt-1">
+                            {{ product.category.name }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Price -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Price
+                        </small>
+
+                        <h5 class="mb-0 mt-1">
+                            ₹{{ product.price }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Stock -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Current Stock
+                        </small>
+
+                        <h5 class="mb-0 mt-1">
+                            {{ product.stock }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Low Stock Limit -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Low Stock Limit
+                        </small>
+
+                        <h5 class="mb-0 mt-1">
+                            {{ product.low_stock_limit }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Stock Status -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Stock Status
+                        </small>
+
+                        <div class="mt-2">
+
+                            {% if product.is_low_stock %}
+
+                                <span class="badge bg-danger fs-6">
+                                    Low Stock
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-success fs-6">
+                                    In Stock
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Active Status -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <small class="text-muted">
+                            Product Status
+                        </small>
+
+                        <div class="mt-2">
+
+                            {% if product.is_active %}
+
+                                <span class="badge bg-success fs-6">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary fs-6">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Description -->
+                <div class="col-12">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Description
+                        </small>
+
+                        <p class="mb-0 mt-2">
+
+                            {% if product.description %}
+
+                                {{ product.description }}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    No description available.
+                                </span>
+
+                            {% endif %}
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Dates -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Created At
+                        </small>
+
+                        <p class="mb-0 mt-1">
+                            {{ product.created_at|date:"d M Y, h:i A" }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Last Updated
+                        </small>
+
+                        <p class="mb-0 mt-1">
+                            {{ product.updated_at|date:"d M Y, h:i A" }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

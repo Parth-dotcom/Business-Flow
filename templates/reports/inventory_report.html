@@ -1,0 +1,722 @@
+
+{% extends "base.html" %}
+
+{% block title %}Inventory Report | BusinessFlow{% endblock %}
+{% block page_title %}Inventory Report{% endblock %}
+
+{% block content %}
+
+<style>
+    .inventory-page {
+        color: #172033;
+    }
+
+    .inventory-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .inventory-header h2 {
+        font-size: 26px;
+        font-weight: 750;
+        margin: 0 0 6px;
+        letter-spacing: -0.5px;
+    }
+
+    .inventory-header p {
+        margin: 0;
+        color: #778196;
+        font-size: 14px;
+    }
+
+    .inventory-card {
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px rgba(20, 35, 60, 0.035);
+        margin-bottom: 22px;
+        overflow: hidden;
+    }
+
+    .inventory-card-header {
+        padding: 19px 22px;
+        border-bottom: 1px solid #edf0f5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .inventory-card-header h5 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 4px;
+    }
+
+    .inventory-card-header p {
+        font-size: 13px;
+        color: #8590a3;
+        margin: 0;
+    }
+
+    .inventory-card-body {
+        padding: 22px;
+    }
+
+    .inventory-stat {
+        height: 100%;
+        background: #fff;
+        border: 1px solid #e7ecf4;
+        border-radius: 13px;
+        padding: 21px;
+        transition: border-color .2s ease, transform .2s ease;
+    }
+
+    .inventory-stat:hover {
+        border-color: #cbd9ff;
+        transform: translateY(-2px);
+    }
+
+    .inventory-stat-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .inventory-stat-label {
+        font-size: 13px;
+        color: #778196;
+        font-weight: 500;
+    }
+
+    .inventory-stat-value {
+        font-size: 27px;
+        font-weight: 750;
+        letter-spacing: -0.7px;
+        margin: 9px 0 5px;
+        overflow-wrap: anywhere;
+    }
+
+    .inventory-stat-note {
+        font-size: 12px;
+        color: #9099a9;
+    }
+
+    .inventory-stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        flex-shrink: 0;
+    }
+
+    .stat-blue { background: #edf3ff; color: #3268ed; }
+    .stat-green { background: #eaf8f0; color: #17985a; }
+    .stat-purple { background: #f2edff; color: #7854d8; }
+    .stat-orange { background: #fff3e6; color: #e58a22; }
+
+    .inventory-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        border: 1px solid;
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 22px;
+    }
+
+    .inventory-alert i {
+        font-size: 21px;
+        margin-top: 1px;
+    }
+
+    .inventory-alert strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 14px;
+    }
+
+    .inventory-alert span {
+        font-size: 13px;
+    }
+
+    .inventory-alert-danger {
+        background: #fff5f5;
+        border-color: #ffdada;
+        color: #b42332;
+    }
+
+    .inventory-alert-warning {
+        background: #fff9ed;
+        border-color: #ffe7b5;
+        color: #956313;
+    }
+
+    .inventory-alert-success {
+        background: #effaf3;
+        border-color: #d1f0dc;
+        color: #197344;
+    }
+
+    .inventory-form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #39445a;
+    }
+
+    .inventory-page .form-control,
+    .inventory-page .form-select {
+        min-height: 45px;
+        border-color: #dfe5ee;
+        border-radius: 8px;
+        font-size: 13px;
+        box-shadow: none;
+    }
+
+    .inventory-page .form-control:focus,
+    .inventory-page .form-select:focus {
+        border-color: #7da2ff;
+        box-shadow: 0 0 0 3px rgba(50, 104, 237, .09);
+    }
+
+    .inventory-page .btn {
+        min-height: 42px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 9px 16px;
+    }
+
+    .inventory-table {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .inventory-table thead th {
+        background: #f7f9fc;
+        color: #68758a;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .35px;
+        padding: 15px 16px;
+        border-bottom: 1px solid #e8edf4;
+    }
+
+    .inventory-table tbody td {
+        padding: 16px;
+        border-color: #edf0f5;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .inventory-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .inventory-table tbody tr:hover {
+        background: #fafbfe;
+    }
+
+    .inventory-product-name {
+        color: #1e293b;
+        font-weight: 650;
+        text-decoration: none;
+    }
+
+    .inventory-product-name:hover {
+        color: #2864ed;
+    }
+
+    .inventory-sku {
+        font-size: 12px;
+        color: #8590a3;
+    }
+
+    .inventory-category {
+        display: inline-block;
+        background: #f3f5f9;
+        border: 1px solid #e7ebf2;
+        color: #536078;
+        padding: 5px 9px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .inventory-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+    .inventory-status-ok {
+        background: #eaf8f0;
+        color: #16834d;
+    }
+
+    .inventory-status-low {
+        background: #fff4df;
+        color: #a56a08;
+    }
+
+    .inventory-status-out {
+        background: #ffeded;
+        color: #c32f3d;
+    }
+
+    .inventory-stock-number {
+        font-weight: 700;
+        color: #273349;
+    }
+
+    .inventory-stock-limit {
+        color: #8b95a7;
+        font-size: 11px;
+    }
+
+    .inventory-progress {
+        width: 110px;
+        height: 5px;
+        background: #edf0f5;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .inventory-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+    }
+
+    .inventory-empty {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+    .inventory-empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 16px;
+        background: #f0f4ff;
+        color: #3268ed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 27px;
+        margin: 0 auto 16px;
+    }
+
+    .inventory-empty h6 {
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .inventory-empty p {
+        color: #8590a3;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .inventory-info-card {
+        border: 1px solid #e8edf4;
+        background: #fff;
+        border-radius: 12px;
+        padding: 19px;
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        height: 100%;
+    }
+
+    .inventory-info-icon {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        font-size: 19px;
+    }
+
+    .inventory-info-card h6 {
+        font-weight: 700;
+        margin: 1px 0 6px;
+        font-size: 14px;
+    }
+
+    .inventory-info-card p {
+        font-size: 12px;
+        color: #818da1;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 767px) {
+        .inventory-header h2 {
+            font-size: 22px;
+        }
+
+        .inventory-card-body {
+            padding: 16px;
+        }
+
+        .inventory-card-header {
+            padding: 16px;
+        }
+
+        .inventory-stat {
+            padding: 17px;
+        }
+
+        .inventory-stat-value {
+            font-size: 24px;
+        }
+
+        .inventory-progress {
+            width: 85px;
+        }
+    }
+</style>
+
+<div class="container-fluid px-0 inventory-page">
+
+    <!-- Page header -->
+    <div class="inventory-header">
+        <div>
+            <h2>Inventory Report</h2>
+            <p>Track your stock, inventory value and products requiring attention.</p>
+        </div>
+
+        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-box-seam me-2"></i>View Products
+        </a>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="inventory-stat">
+                <div class="inventory-stat-top">
+                    <div class="inventory-stat-label">Total Products</div>
+                    <div class="inventory-stat-icon stat-blue">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+                <div class="inventory-stat-value">{{ total_products }}</div>
+                <div class="inventory-stat-note">Products in this report</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="inventory-stat">
+                <div class="inventory-stat-top">
+                    <div class="inventory-stat-label">Available Stock</div>
+                    <div class="inventory-stat-icon stat-green">
+                        <i class="bi bi-stack"></i>
+                    </div>
+                </div>
+                <div class="inventory-stat-value">{{ total_stock }}</div>
+                <div class="inventory-stat-note">Total units currently available</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="inventory-stat">
+                <div class="inventory-stat-top">
+                    <div class="inventory-stat-label">Inventory Value</div>
+                    <div class="inventory-stat-icon stat-purple">
+                        <i class="bi bi-currency-rupee"></i>
+                    </div>
+                </div>
+                <div class="inventory-stat-value">₹{{ total_inventory_value|floatformat:2 }}</div>
+                <div class="inventory-stat-note">Current stock × product price</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="inventory-stat">
+                <div class="inventory-stat-top">
+                    <div class="inventory-stat-label">Low Stock Products</div>
+                    <div class="inventory-stat-icon stat-orange">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="inventory-stat-value">{{ low_stock_count }}</div>
+                <div class="inventory-stat-note">Products at or below stock limit</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Stock alerts -->
+    {% if out_of_stock_count > 0 %}
+        <div class="inventory-alert inventory-alert-danger">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <div>
+                <strong>Out-of-stock alert</strong>
+                <span>
+                    {{ out_of_stock_count }} product{{ out_of_stock_count|pluralize }}
+                    currently have no stock. Review these products and replenish them.
+                </span>
+            </div>
+        </div>
+    {% elif low_stock_count > 0 %}
+        <div class="inventory-alert inventory-alert-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Low-stock alert</strong>
+                <span>
+                    {{ low_stock_count }} product{{ low_stock_count|pluralize }}
+                    need attention because their stock has reached the configured limit.
+                </span>
+            </div>
+        </div>
+    {% else %}
+        <div class="inventory-alert inventory-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>
+                <strong>Inventory looks healthy</strong>
+                <span>No low-stock or out-of-stock products currently require attention.</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Stock filter -->
+    <div class="inventory-card">
+        <div class="inventory-card-header">
+            <div>
+                <h5><i class="bi bi-funnel me-2 text-primary"></i>Filter Inventory</h5>
+                <p>Choose a stock status to narrow the products below.</p>
+            </div>
+        </div>
+
+        <div class="inventory-card-body">
+            <form method="get">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="stock_status" class="inventory-form-label">Stock Status</label>
+                        <select name="stock_status" id="stock_status" class="form-select">
+                            <option value="all" {% if stock_status == "all" %}selected{% endif %}>All Products</option>
+                            <option value="in_stock" {% if stock_status == "in_stock" %}selected{% endif %}>In Stock</option>
+                            <option value="low_stock" {% if stock_status == "low_stock" %}selected{% endif %}>Low Stock</option>
+                            <option value="out_of_stock" {% if stock_status == "out_of_stock" %}selected{% endif %}>Out of Stock</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-8">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel me-1"></i>Apply Filter
+                            </button>
+
+                            <a href="{% url 'inventory_report' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active filter -->
+    {% if stock_status != "all" %}
+        <div class="alert alert-primary d-flex align-items-center gap-2 py-3 mb-4">
+            <i class="bi bi-filter-circle fs-5"></i>
+            <div>
+                <strong>Active filter:</strong>
+                {% if stock_status == "in_stock" %}
+                    In Stock
+                {% elif stock_status == "low_stock" %}
+                    Low Stock
+                {% elif stock_status == "out_of_stock" %}
+                    Out of Stock
+                {% endif %}
+                <a href="{% url 'inventory_report' %}" class="ms-2 text-decoration-none">Clear filter</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Inventory table -->
+    <div class="inventory-card">
+        <div class="inventory-card-header">
+            <div>
+                <h5>Inventory Details</h5>
+                <p>Review product pricing, stock levels and inventory value.</p>
+            </div>
+
+            <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                {{ total_products }} product{{ total_products|pluralize }}
+            </span>
+        </div>
+
+        {% if products %}
+            <div class="table-responsive">
+                <table class="table inventory-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th class="text-end">Price</th>
+                            <th>Stock Level</th>
+                            <th class="text-center">Limit</th>
+                            <th>Status</th>
+                            <th class="text-end">Inventory Value</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td class="text-muted">{{ forloop.counter }}</td>
+
+                                <td>
+                                    <a href="{% url 'product_detail' product.id %}" class="inventory-product-name">
+                                        {{ product.name }}
+                                    </a>
+                                </td>
+
+                                <td><span class="inventory-sku">{{ product.sku }}</span></td>
+
+                                <td>
+                                    {% if product.category %}
+                                        <span class="inventory-category">{{ product.category.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">₹{{ product.price|floatformat:2 }}</td>
+
+                                <td>
+                                    <div class="d-flex justify-content-between align-items-center gap-2">
+                                        <span class="inventory-stock-number">{{ product.stock }} units</span>
+                                        <span class="inventory-stock-limit">Limit {{ product.low_stock_limit }}</span>
+                                    </div>
+
+                                    <div class="inventory-progress">
+                                        {% if product.stock == 0 %}
+                                            <div class="inventory-progress-bar bg-danger" style="width: 0%;"></div>
+                                        {% elif product.stock <= product.low_stock_limit %}
+                                            <div class="inventory-progress-bar bg-warning" style="width: 35%;"></div>
+                                        {% else %}
+                                            <div class="inventory-progress-bar bg-success" style="width: 100%;"></div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td class="text-center">{{ product.low_stock_limit }}</td>
+
+                                <td>
+                                    {% if product.stock == 0 %}
+                                        <span class="inventory-status inventory-status-out">
+                                            <i class="bi bi-x-circle-fill"></i>Out of Stock
+                                        </span>
+                                    {% elif product.stock <= product.low_stock_limit %}
+                                        <span class="inventory-status inventory-status-low">
+                                            <i class="bi bi-exclamation-circle-fill"></i>Low Stock
+                                        </span>
+                                    {% else %}
+                                        <span class="inventory-status inventory-status-ok">
+                                            <i class="bi bi-check-circle-fill"></i>In Stock
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    ₹{{ product.inventory_value|floatformat:2 }}
+                                </td>
+
+                                <td class="text-center">
+                                    <a href="{% url 'product_detail' product.id %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View product"
+                                       aria-label="View {{ product.name }}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="inventory-empty">
+                <div class="inventory-empty-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h6>No products found</h6>
+                <p>No products match the selected stock status.</p>
+                <a href="{% url 'inventory_report' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Show All Products
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Inventory guidance -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-6">
+            <div class="inventory-info-card">
+                <div class="inventory-info-icon stat-orange">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h6>Low Stock Products</h6>
+                    <p>
+                        {{ low_stock_count }} product{{ low_stock_count|pluralize }}
+                        have stock at or below the configured limit.
+                        Consider replenishing these items.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="inventory-info-card">
+                <div class="inventory-info-icon stat-blue">
+                    <i class="bi bi-box2"></i>
+                </div>
+                <div>
+                    <h6>Out-of-Stock Products</h6>
+                    <p>
+                        {{ out_of_stock_count }} product{{ out_of_stock_count|pluralize }}
+                        currently have zero stock. Open a product to review its details.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center text-muted pb-3">
+        <small>BusinessFlow · Inventory Management</small>
+    </div>
+
+</div>
+
+{% endblock %}

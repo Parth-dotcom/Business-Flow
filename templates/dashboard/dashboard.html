@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard | BusinessFlow{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+.dashboard-page {
+    --primary: #4169e1;
+    --text: #172033;
+    --muted: #7b8799;
+    --border: #e8edf4;
+    color: var(--text);
+    padding-bottom: 20px;
+}
+.dashboard-page * { box-sizing: border-box; }
+
+.db-header, .db-section-heading, .db-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.db-header { margin-bottom: 24px; }
+.db-heading { margin: 0; font-size: clamp(23px,3vw,29px); font-weight: 800; }
+.db-subheading { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.db-date, .db-action, .db-outline-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: white;
+    padding: 10px 14px;
+    color: #526078;
+    font-size: 11px;
+    font-weight: 650;
+    text-decoration: none;
+}
+.db-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+.db-action { min-height: 41px; }
+.db-action:hover, .db-outline-link:hover { background: #f5f7ff; color: var(--primary); border-color: #bdcdfd; }
+.db-action-primary { color: white; background: var(--primary); border-color: var(--primary); }
+.db-action-primary:hover { background: #3156c7; color: white; }
+
+.db-section-heading { margin: 27px 0 14px; }
+.db-section-heading h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.db-section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+
+.db-card {
+    height: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 3px 12px rgba(22,34,56,.025);
+}
+.db-stat { padding: 19px; }
+.db-stat-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.db-stat-label, .db-inventory-label { color: #65738a; font-size: 12px; font-weight: 650; }
+.db-stat-icon, .db-card-icon, .db-customer-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 18px;
+}
+.db-blue { background: #edf2ff; color: #4169e1; }
+.db-green { background: #e9f8f0; color: #168858; }
+.db-purple { background: #f1edff; color: #7855d8; }
+.db-orange { background: #fff3e5; color: #d78321; }
+.db-teal { background: #e5f8f6; color: #07877c; }
+.db-pink { background: #fff0f5; color: #cf4b83; }
+.db-stat-value { margin-top: 17px; font-size: clamp(20px,2vw,26px); line-height: 1.35; font-weight: 800; overflow-wrap: anywhere; }
+.db-stat-note, .db-inventory-note { margin-top: 7px; color: #929daf; font-size: 10px; line-height: 1.6; }
+
+.db-card-header { padding: 18px 20px; border-bottom: 1px solid #edf0f5; }
+.db-card-title-wrap { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.db-card-icon { background: #edf2ff; color: var(--primary); }
+.db-card-title { margin: 0; font-size: 14px; font-weight: 800; }
+.db-card-description { margin: 5px 0 0; color: #929daf; font-size: 10px; line-height: 1.6; }
+.db-card-body { padding: 20px; }
+
+.db-info {
+    padding: 12px 14px;
+    margin-bottom: 17px;
+    border: 1px solid #e1e9fc;
+    border-radius: 10px;
+    background: #f7f9ff;
+    color: #5c6c8c;
+    font-size: 10px;
+    line-height: 1.8;
+}
+.db-info i { margin-right: 5px; color: var(--primary); }
+.db-net-info { margin: 17px 0 0; border-color: #f3dfbd; background: #fffaf2; color: #805b28; }
+.db-net-info i { color: #ca8524; }
+
+.db-inventory-stat { height: 100%; padding: 17px; border: 1px solid var(--border); border-radius: 12px; background: #fbfcfe; }
+.db-inventory-value { margin-top: 10px; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+
+.db-chart-controls { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; padding: 5px; border: 1px solid var(--border); border-radius: 11px; background: #f7f9fc; }
+.db-chart-btn { flex: 1 1 100px; padding: 10px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #647188; font-size: 11px; font-weight: 750; cursor: pointer; }
+.db-chart-btn:hover { background: #edf2ff; color: var(--primary); }
+.db-chart-btn.active { background: white; color: var(--primary); border-color: #e0e8ff; box-shadow: 0 2px 5px rgba(30,50,100,.06); }
+.db-chart-status { margin: 0 0 14px; color: #65738a; font-size: 11px; line-height: 1.6; }
+.db-chart-wrap { position: relative; width: 100%; height: 310px; }
+.db-chart-note { margin-top: 12px; color: #929daf; font-size: 10px; line-height: 1.7; }
+
+.db-customer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #edf0f5; }
+.db-customer:first-child { padding-top: 0; }
+.db-customer:last-child { padding-bottom: 0; border-bottom: 0; }
+.db-customer-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.db-customer-avatar { background: #edf2ff; color: var(--primary); }
+.db-customer-name { font-size: 11px; font-weight: 750; overflow-wrap: anywhere; }
+.db-customer-count { margin-top: 5px; color: #929daf; font-size: 10px; }
+.db-customer-total { font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+.db-table-wrap { width: 100%; overflow-x: auto; }
+.db-table { width: 100%; margin: 0; white-space: nowrap; border-collapse: separate; border-spacing: 0; }
+.db-table thead th { padding: 13px 16px; border-bottom: 1px solid var(--border); background: #f8fafd; color: #748198; font-size: 9px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
+.db-table tbody td { padding: 15px 16px; border-bottom: 1px solid #edf0f5; color: #46546b; font-size: 11px; vertical-align: middle; }
+.db-table tbody tr:last-child td { border-bottom: 0; }
+.db-table tbody tr:hover td { background: #fbfcff; }
+.db-invoice { color: #3264dc; font-weight: 800; text-decoration: none; }
+.db-invoice:hover { text-decoration: underline; }
+.db-payment { display: inline-flex; padding: 6px 9px; border-radius: 20px; background: #edf2ff; color: var(--primary); font-size: 9px; font-weight: 750; }
+.db-total { color: #202d43 !important; font-weight: 800; }
+
+.db-stock-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 20px; font-size: 9px; font-weight: 800; }
+.db-status-low { background: #fff3e5; color: #b96b12; }
+.db-status-out { background: #fff0f0; color: #c53d4b; }
+.db-stock-number { font-weight: 800; color: #26344b; }
+.db-stock-product { font-weight: 750; color: #26344b; }
+
+.db-empty { padding: 35px 18px; text-align: center; color: #929daf; font-size: 11px; line-height: 1.7; }
+.db-empty i { display: block; margin-bottom: 10px; font-size: 27px; color: #b5bfce; }
+.db-footer { padding: 23px 0 8px; color: #a0aaba; text-align: center; font-size: 10px; }
+
+@media (max-width:767px) {
+    .db-stat { padding: 16px; }
+    .db-card-header, .db-card-body { padding: 15px; }
+    .db-stat-value { font-size: 21px; }
+    .db-chart-wrap { height: 280px; }
+}
+@media (max-width:380px) {
+    .db-actions .db-action { flex: 1 1 100%; }
+    .db-chart-btn { flex-basis: 100%; }
+}
+</style>
+
+<div class="dashboard-page">
+
+    <div class="db-header">
+        <div>
+            <h2 class="db-heading">Dashboard Overview</h2>
+            <p class="db-subheading">Welcome back! Here's your business performance at a glance.</p>
+        </div>
+        <div class="db-date"><i class="bi bi-calendar3"></i> {% now "d M Y" %}</div>
+    </div>
+
+    <div class="db-actions">
+        <a href="{% url 'new_sale' %}" class="db-action db-action-primary"><i class="bi bi-plus-lg"></i> New Sale</a>
+        <a href="{% url 'product_create' %}" class="db-action"><i class="bi bi-box-seam"></i> Add Product</a>
+        <a href="{% url 'customer_create' %}" class="db-action"><i class="bi bi-person-plus"></i> Add Customer</a>
+        <a href="{% url 'sales_report' %}" class="db-action"><i class="bi bi-bar-chart-line"></i> Sales Report</a>
+    </div>
+
+    <div class="db-section-heading">
+        <div><h3>Business Overview</h3><p>Your sales activity and customer summary</p></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label">Today's Sales</span><span class="db-stat-icon db-blue"><i class="bi bi-currency-rupee"></i></span></div>
+                <div class="db-stat-value">₹{{ today_sales|default:0|floatformat:2|intcomma }}</div>
+                <div class="db-stat-note">{{ today_invoice_count|default:0 }} invoice{{ today_invoice_count|pluralize }} today</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label">Total Sales</span><span class="db-stat-icon db-green"><i class="bi bi-graph-up-arrow"></i></span></div>
+                <div class="db-stat-value">₹{{ total_sales|default:0|floatformat:2|intcomma }}</div>
+                <div class="db-stat-note">All-time sales revenue</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label">Customers</span><span class="db-stat-icon db-purple"><i class="bi bi-people"></i></span></div>
+                <div class="db-stat-value">{{ total_customers|default:0 }}</div>
+                <div class="db-stat-note">Registered customers</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label">Low Stock</span><span class="db-stat-icon db-orange"><i class="bi bi-exclamation-triangle"></i></span></div>
+                <div class="db-stat-value">{{ low_stock_count|default:0 }}</div>
+                <div class="db-stat-note">Products needing attention</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-section-heading">
+        <div><h3>Profit &amp; Expenses</h3><p>Understand your estimated profitability after recorded expenses</p></div>
+    </div>
+
+    <div class="db-card mb-4">
+        <div class="db-card-header">
+            <div class="db-card-title-wrap">
+                <span class="db-card-icon db-green"><i class="bi bi-cash-coin"></i></span>
+                <div><h4 class="db-card-title">Financial Summary</h4><p class="db-card-description">Today's and all-time financial figures</p></div>
+            </div>
+            <a href="{% url 'sales_report' %}" class="db-outline-link">Sales Report <i class="bi bi-arrow-up-right"></i></a>
+        </div>
+        <div class="db-card-body">
+            <div class="db-info"><i class="bi bi-info-circle"></i> Profit before expenses is estimated from sales, discounts and recorded product costs. Net profit subtracts recorded business expenses. Figures depend on accurate product cost prices and expense records.</div>
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Today's Profit</span><span class="db-stat-icon db-green"><i class="bi bi-wallet2"></i></span></div>
+                        <div class="db-stat-value">₹{{ today_profit|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">Before business expenses</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Today's Expenses</span><span class="db-stat-icon db-orange"><i class="bi bi-receipt"></i></span></div>
+                        <div class="db-stat-value">₹{{ today_expenses|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">Expenses dated today</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Today's Net Profit</span><span class="db-stat-icon db-teal"><i class="bi bi-calculator"></i></span></div>
+                        <div class="db-stat-value">₹{{ today_net_profit|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">Today's profit minus today's expenses</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Total Profit</span><span class="db-stat-icon db-blue"><i class="bi bi-graph-up-arrow"></i></span></div>
+                        <div class="db-stat-value">₹{{ total_profit|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">All-time profit before expenses</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Total Expenses</span><span class="db-stat-icon db-orange"><i class="bi bi-cash-stack"></i></span></div>
+                        <div class="db-stat-value">₹{{ total_expenses|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">All recorded business expenses</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="db-card db-stat" style="border-color:#ccebdd;">
+                        <div class="db-stat-top"><span class="db-stat-label">Estimated Net Profit</span><span class="db-stat-icon db-green"><i class="bi bi-piggy-bank"></i></span></div>
+                        <div class="db-stat-value">₹{{ estimated_net_profit|default:0|floatformat:2|intcomma }}</div>
+                        <div class="db-stat-note">Total profit minus recorded expenses</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="db-card db-stat">
+                        <div class="db-stat-top"><span class="db-stat-label">Profit Margin</span><span class="db-stat-icon db-pink"><i class="bi bi-percent"></i></span></div>
+                        <div class="db-stat-value">{{ profit_margin|default:0|floatformat:2 }}%</div>
+                        <div class="db-stat-note">Profit before expenses as a percentage of net sales</div>
+                    </div>
+                </div>
+            </div>
+            <div class="db-info db-net-info"><i class="bi bi-lightbulb"></i> <strong>Calculation:</strong> Estimated net profit = profit before expenses − recorded business expenses. This is an estimate, not a formal accounting statement.</div>
+        </div>
+    </div>
+
+    <div class="db-section-heading">
+        <div><h3>Inventory Overview</h3><p>Current products, stock availability and inventory value</p></div>
+        <a href="{% url 'inventory_report' %}" class="db-outline-link">Inventory Report <i class="bi bi-arrow-up-right"></i></a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card"><div class="db-inventory-stat">
+                <div class="db-stat-top"><span class="db-inventory-label">Active Products</span><span class="db-stat-icon db-blue"><i class="bi bi-box-seam"></i></span></div>
+                <div class="db-inventory-value">{{ inventory_product_count|default:0 }}</div>
+                <div class="db-inventory-note">Products in inventory</div>
+            </div></div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card"><div class="db-inventory-stat">
+                <div class="db-stat-top"><span class="db-inventory-label">Stock Units</span><span class="db-stat-icon db-purple"><i class="bi bi-boxes"></i></span></div>
+                <div class="db-inventory-value">{{ inventory_total_stock|default:0 }}</div>
+                <div class="db-inventory-note">Units currently available</div>
+            </div></div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card"><div class="db-inventory-stat">
+                <div class="db-stat-top"><span class="db-inventory-label">Inventory Value</span><span class="db-stat-icon db-green"><i class="bi bi-currency-rupee"></i></span></div>
+                <div class="db-inventory-value">₹{{ inventory_total_value|default:0|floatformat:2|intcomma }}</div>
+                <div class="db-inventory-note">Based on current stock and product price</div>
+            </div></div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="db-card"><div class="db-inventory-stat">
+                <div class="db-stat-top"><span class="db-inventory-label">Stock Alerts</span><span class="db-stat-icon db-orange"><i class="bi bi-exclamation-triangle"></i></span></div>
+                <div class="db-inventory-value">{{ inventory_low_stock_count|default:0|add:inventory_out_of_stock_count|default:0 }}</div>
+                <div class="db-inventory-note">{{ inventory_low_stock_count|default:0 }} low stock · {{ inventory_out_of_stock_count|default:0 }} out of stock</div>
+            </div></div>
+        </div>
+    </div>
+
+    <!-- Low Stock Products -->
+    <div class="db-section-heading">
+        <div>
+            <h3>Low Stock Products</h3>
+            <p>Products that have reached their restock limit and may need replenishment</p>
+        </div>
+        <a href="{% url 'inventory_report' %}" class="db-outline-link">View Inventory <i class="bi bi-arrow-up-right"></i></a>
+    </div>
+
+    <div class="db-card mb-4">
+        {% if stock_alert_products %}
+            <div class="db-table-wrap">
+                <table class="db-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Available Stock</th>
+                            <th>Restock Limit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in stock_alert_products %}
+                            <tr>
+                                <td class="db-stock-product">{{ product.name }}</td>
+                                <td><span class="db-stock-number">{{ product.stock|default:0 }}</span></td>
+                                <td>{{ product.low_stock_limit|default:0 }}</td>
+                                <td>
+                                    {% if product.stock == 0 %}
+                                        <span class="db-stock-status db-status-out"><i class="bi bi-x-circle-fill"></i> Out of Stock</span>
+                                    {% else %}
+                                        <span class="db-stock-status db-status-low"><i class="bi bi-exclamation-triangle-fill"></i> Low Stock</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="db-empty">
+                <i class="bi bi-check-circle"></i>
+                All active products are above their restock limits.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Monthly Financial Summary Cards -->
+    <div class="db-section-heading">
+        <div><h3>Business Performance</h3><p>Monthly totals update when you switch between chart views</p></div>
+    </div>
+
+    {% if monthly_sales %}
+    <script type="application/json" id="monthlySalesData">[
+        {% for item in monthly_sales %}
+        {
+            "month": "{{ item.month|escapejs }}",
+            "sales": {{ item.sales|default:item.total|default:0 }},
+            "cost": {{ item.cost|default:0 }},
+            "profit": {{ item.profit|default:0 }},
+            "expenses": {{ item.expenses|default:0 }},
+            "net_profit": {{ item.net_profit|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]</script>
+    {% endif %}
+
+    <div class="row g-3 mb-3" id="monthlySummaryCards">
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label" id="summaryLabelOne">Monthly Sales</span><span class="db-stat-icon db-blue"><i class="bi bi-currency-rupee" id="summaryIconOne"></i></span></div>
+                <div class="db-stat-value" id="summaryValueOne">₹0.00</div>
+                <div class="db-stat-note" id="summaryNoteOne">Total sales for the displayed months</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label" id="summaryLabelTwo">Product Costs</span><span class="db-stat-icon db-orange"><i class="bi bi-box-seam" id="summaryIconTwo"></i></span></div>
+                <div class="db-stat-value" id="summaryValueTwo">₹0.00</div>
+                <div class="db-stat-note" id="summaryNoteTwo">Recorded product costs</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="db-card db-stat">
+                <div class="db-stat-top"><span class="db-stat-label" id="summaryLabelThree">Profit Before Expenses</span><span class="db-stat-icon db-green"><i class="bi bi-graph-up-arrow" id="summaryIconThree"></i></span></div>
+                <div class="db-stat-value" id="summaryValueThree">₹0.00</div>
+                <div class="db-stat-note" id="summaryNoteThree">Profit before recorded expenses</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-xl-8">
+            <div class="db-card">
+                <div class="db-card-header">
+                    <div class="db-card-title-wrap">
+                        <span class="db-card-icon"><i class="bi bi-bar-chart-line"></i></span>
+                        <div><h4 class="db-card-title">Monthly Financial Analysis</h4><p class="db-card-description">Financial performance for {% now "Y" %}</p></div>
+                    </div>
+                </div>
+                <div class="db-card-body">
+                    {% if monthly_sales %}
+                    <div class="db-chart-controls" role="group" aria-label="Choose chart view">
+                        <button type="button" class="db-chart-btn active" data-chart-view="sales" aria-pressed="true"><i class="bi bi-graph-up-arrow"></i> Sales</button>
+                        <button type="button" class="db-chart-btn" data-chart-view="profit" aria-pressed="false"><i class="bi bi-wallet2"></i> Profit</button>
+                        <button type="button" class="db-chart-btn" data-chart-view="expenses" aria-pressed="false"><i class="bi bi-receipt"></i> Expenses</button>
+                    </div>
+                    <p class="db-chart-status" id="chartViewDescription">Monthly sales revenue. Switch views to inspect other financial trends.</p>
+                    <div class="db-chart-wrap"><canvas id="monthlySalesChart"></canvas></div>
+                    <div class="db-chart-note">Hover over a month to see its exact value. Amounts are displayed in Indian rupees.</div>
+                    {% else %}
+                    <div class="db-empty"><i class="bi bi-bar-chart"></i>No monthly financial data available yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="db-card">
+                <div class="db-card-header">
+                    <div class="db-card-title-wrap">
+                        <span class="db-card-icon" style="background:#fff4e6;color:#d78321;"><i class="bi bi-trophy"></i></span>
+                        <div><h4 class="db-card-title">Top Customers</h4><p class="db-card-description">Highest purchase value</p></div>
+                    </div>
+                </div>
+                <div class="db-card-body">
+                    {% if top_customers %}
+                        {% for customer in top_customers %}
+                        <div class="db-customer">
+                            <div class="db-customer-left">
+                                <div class="db-customer-avatar"><i class="bi bi-person"></i></div>
+                                <div>
+                                    <div class="db-customer-name">{{ customer.customer__name }}</div>
+                                    <div class="db-customer-count">{{ customer.invoice_count }} invoice{{ customer.invoice_count|pluralize }}</div>
+                                </div>
+                            </div>
+                            <div class="db-customer-total">₹{{ customer.total_purchases|default:0|floatformat:2|intcomma }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="db-empty"><i class="bi bi-people"></i>No customer sales recorded yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="db-card">
+        <div class="db-card-header">
+            <div class="db-card-title-wrap">
+                <span class="db-card-icon"><i class="bi bi-receipt"></i></span>
+                <div><h4 class="db-card-title">Recent Sales</h4><p class="db-card-description">Your latest invoices and transactions</p></div>
+            </div>
+            <a href="{% url 'sale_list' %}" class="db-outline-link">View All Sales <i class="bi bi-arrow-up-right"></i></a>
+        </div>
+
+        {% if recent_sales %}
+        <div class="db-table-wrap">
+            <table class="db-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for sale in recent_sales %}
+                    <tr>
+                        <td><a href="{% url 'sale_detail' sale.pk %}" class="db-invoice">{{ sale.invoice_number }}</a></td>
+                        <td>{% if sale.customer %}{{ sale.customer.name }}{% else %}<span class="text-muted">Walk-in Customer</span>{% endif %}</td>
+                        <td>{{ sale.items.count }}</td>
+                        <td><span class="db-payment">{{ sale.get_payment_method_display }}</span></td>
+                        <td>{{ sale.created_at|date:"d M Y, h:i A" }}</td>
+                        <td class="text-end db-total">₹{{ sale.total_amount|default:0|floatformat:2|intcomma }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="db-empty">
+            <i class="bi bi-receipt"></i>
+            No sales recorded yet.
+            <div class="mt-2">
+                <a href="{% url 'new_sale' %}" class="db-outline-link"><i class="bi bi-plus-lg"></i> Create First Sale</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="db-footer">BusinessFlow · Business Management System</div>
+</div>
+
+{% if monthly_sales %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dataElement = document.getElementById("monthlySalesData");
+    const canvas = document.getElementById("monthlySalesChart");
+    if (!dataElement) return;
+
+    let months;
+    try {
+        months = JSON.parse(dataElement.textContent);
+    } catch (error) {
+        console.error("Could not read monthly financial data.", error);
+        return;
+    }
+
+    const money = value => "₹" + Number(value || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    const sum = field => months.reduce((total, month) => total + Number(month[field] || 0), 0);
+
+    const summaryDefinitions = {
+        sales: {
+            labels: ["Monthly Sales", "Product Costs", "Profit Before Expenses"],
+            notes: ["Total sales revenue for the displayed months", "Recorded product costs", "Profit before recorded expenses"],
+            fields: ["sales", "cost", "profit"],
+            icons: ["bi-currency-rupee", "bi-box-seam", "bi-graph-up-arrow"],
+            colors: ["db-blue", "db-orange", "db-green"],
+            description: "Monthly sales revenue. Switch views to inspect other financial trends."
+        },
+        profit: {
+            labels: ["Sales Revenue", "Profit Before Expenses", "Estimated Net Profit"],
+            notes: ["Sales for the displayed months", "After product costs, before expenses", "After recorded business expenses"],
+            fields: ["sales", "profit", "net_profit"],
+            icons: ["bi-currency-rupee", "bi-wallet2", "bi-piggy-bank"],
+            colors: ["db-blue", "db-green", "db-purple"],
+            description: "Compare sales revenue, profit before expenses and estimated net profit."
+        },
+        expenses: {
+            labels: ["Total Expenses", "Product Costs", "Combined Costs"],
+            notes: ["Recorded business expenses", "Recorded product costs", "Product costs plus business expenses"],
+            fields: ["expenses", "cost", "combined"],
+            icons: ["bi-receipt", "bi-box-seam", "bi-calculator"],
+            colors: ["db-orange", "db-blue", "db-purple"],
+            description: "Compare recorded operating expenses with product costs and combined costs."
+        }
+    };
+
+    function summaryValue(field) {
+        if (field === "combined") return sum("cost") + sum("expenses");
+        return sum(field);
+    }
+
+    function updateSummary(view) {
+        const definition = summaryDefinitions[view];
+
+        definition.fields.forEach(function (field, index) {
+            document.getElementById("summaryLabel" + ["One", "Two", "Three"][index]).textContent = definition.labels[index];
+            document.getElementById("summaryValue" + ["One", "Two", "Three"][index]).textContent = money(summaryValue(field));
+            document.getElementById("summaryNote" + ["One", "Two", "Three"][index]).textContent = definition.notes[index];
+
+            const icon = document.getElementById("summaryIcon" + ["One", "Two", "Three"][index]);
+            icon.className = "bi " + definition.icons[index];
+
+            const iconBox = icon.closest(".db-stat-icon");
+            iconBox.className = "db-stat-icon " + definition.colors[index];
+        });
+
+        const description = document.getElementById("chartViewDescription");
+        if (description) description.textContent = definition.description;
+    }
+
+    const chartViews = {
+        sales: [
+            { label: "Sales Revenue", field: "sales", color: "#5278ee" }
+        ],
+        profit: [
+            { label: "Profit Before Expenses", field: "profit", color: "#25a779" },
+            { label: "Estimated Net Profit", field: "net_profit", color: "#8a70dc" }
+        ],
+        expenses: [
+            { label: "Business Expenses", field: "expenses", color: "#e66c76" }
+        ]
+    };
+
+    function datasetsFor(view) {
+        return chartViews[view].map(function (dataset) {
+            return {
+                label: dataset.label,
+                data: months.map(month => Number(month[dataset.field] || 0)),
+                backgroundColor: dataset.color,
+                borderColor: dataset.color,
+                borderRadius: 5,
+                borderSkipped: false,
+                maxBarThickness: 34
+            };
+        });
+    }
+
+    if (canvas && typeof Chart !== "undefined") {
+        const chart = new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels: months.map(month => month.month),
+                datasets: datasetsFor("sales")
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "rectRounded",
+                            padding: 16,
+                            boxWidth: 9,
+                            font: { size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: "#172033",
+                        padding: 12,
+                        callbacks: {
+                            label: context => " " + context.dataset.label + ": " + money(context.parsed.y)
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 }, maxRotation: 0 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "#edf0f5" },
+                        ticks: {
+                            font: { size: 10 },
+                            callback: value => "₹" + Number(value).toLocaleString("en-IN")
+                        }
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll("[data-chart-view]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const view = button.dataset.chartView;
+                if (!chartViews[view]) return;
+
+                document.querySelectorAll("[data-chart-view]").forEach(function (other) {
+                    const active = other === button;
+                    other.classList.toggle("active", active);
+                    other.setAttribute("aria-pressed", active ? "true" : "false");
+                });
+
+                chart.data.datasets = datasetsFor(view);
+                chart.update();
+                updateSummary(view);
+            });
+        });
+    } else if (canvas) {
+        document.getElementById("chartViewDescription").textContent =
+            "Chart library could not load. The monthly summary cards are still available.";
+    }
+
+    updateSummary("sales");
+});
+</script>
+{% endif %}
+
+{% endblock %}

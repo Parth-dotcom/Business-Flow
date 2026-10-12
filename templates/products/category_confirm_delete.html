@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Category | BusinessFlow{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+
+        <h2 class="mb-1">
+            Delete Category
+        </h2>
+
+        <p class="text-muted mb-0">
+            Confirm category deletion.
+        </p>
+
+    </div>
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+
+            {% if product_count > 0 %}
+
+                <div class="alert alert-danger">
+
+                    <strong>
+                        Cannot delete this category.
+                    </strong>
+
+                    <div class="mt-2">
+
+                        This category is currently used by
+                        <strong>
+                            {{ product_count }}
+                        </strong>
+                        product{{ product_count|pluralize }}.
+
+                    </div>
+
+                    <div class="mt-2">
+
+                        Remove or reassign those products before
+                        deleting this category.
+
+                    </div>
+
+                </div>
+
+
+                <a
+                    href="{% url 'category_list' %}"
+                    class="btn btn-secondary"
+                >
+                    Back to Categories
+                </a>
+
+
+            {% else %}
+
+                <div class="alert alert-warning">
+
+                    <strong>
+                        Warning:
+                    </strong>
+
+                    This action cannot be undone.
+
+                </div>
+
+
+                <h5>
+                    {{ category.name }}
+                </h5>
+
+
+                {% if category.description %}
+
+                    <p class="text-muted">
+                        {{ category.description }}
+                    </p>
+
+                {% endif %}
+
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger"
+                    >
+                        Delete Category
+                    </button>
+
+                    <a
+                        href="{% url 'category_list' %}"
+                        class="btn btn-secondary ms-2"
+                    >
+                        Cancel
+                    </a>
+
+                </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

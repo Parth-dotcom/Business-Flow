@@ -1,0 +1,348 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | BusinessFlow{% endblock %}
+
+{% block content %}
+<style>
+    .expense-form-page {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 24px 0;
+    }
+
+    .expense-form-card {
+        border: 1px solid #e7ecf3;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 22px rgba(15, 23, 42, 0.04);
+    }
+
+    .expense-form-card .card-body {
+        padding: 28px;
+    }
+
+    .expense-form-page .form-label {
+        color: #344054;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .expense-form-page .form-control,
+    .expense-form-page .form-select {
+        min-height: 44px;
+        border-color: #dce3ed;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .expense-form-page textarea.form-control {
+        min-height: 100px;
+    }
+
+    .expense-form-page .form-control:focus,
+    .expense-form-page .form-select:focus {
+        border-color: #86a8ff;
+        box-shadow: 0 0 0 3px rgba(50, 104, 237, 0.1);
+    }
+
+    .recurring-panel {
+        border: 1px solid #dbe7ff;
+        background: #f7f9ff;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .recurring-heading {
+        color: #254da8;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .recurring-help {
+        color: #697891;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .expense-required {
+        color: #dc3545;
+    }
+
+    @media (max-width: 576px) {
+        .expense-form-card .card-body {
+            padding: 18px;
+        }
+
+        .expense-form-page {
+            padding-top: 12px;
+        }
+    }
+</style>
+
+<div class="container-fluid expense-form-page">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">{{ page_title }}</h2>
+            <p class="text-muted mb-0">
+                Enter your business expense details below.
+            </p>
+        </div>
+
+        <a href="{% url 'expenses:expense_list' %}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Expenses
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                 role="alert">
+                {{ message }}
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card expense-form-card">
+        <div class="card-body">
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row g-4">
+
+                    <!-- EXPENSE TITLE -->
+                    <div class="col-md-6">
+                        <label for="title" class="form-label fw-semibold">
+                            Expense Title <span class="expense-required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="title"
+                            id="title"
+                            class="form-control"
+                            placeholder="e.g. Shop Rent"
+                            value="{% if form_data %}{{ form_data.title|default:'' }}{% elif expense %}{{ expense.title }}{% endif %}"
+                            maxlength="200"
+                            required
+                        >
+                    </div>
+
+                    <!-- CATEGORY -->
+                    <div class="col-md-6">
+                        <label for="category" class="form-label fw-semibold">
+                            Category <span class="expense-required">*</span>
+                        </label>
+
+                        <select name="category"
+                                id="category"
+                                class="form-select"
+                                required>
+                            <option value="">Select Category</option>
+
+                            {% for value, label in category_choices %}
+                                <option value="{{ value }}"
+                                    {% if form_data %}
+                                        {% if form_data.category == value %}selected{% endif %}
+                                    {% elif expense %}
+                                        {% if expense.category == value %}selected{% endif %}
+                                    {% elif value == "Other" %}
+                                        selected
+                                    {% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- AMOUNT -->
+                    <div class="col-md-6">
+                        <label for="amount" class="form-label fw-semibold">
+                            Amount (₹) <span class="expense-required">*</span>
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input
+                                type="number"
+                                name="amount"
+                                id="amount"
+                                class="form-control"
+                                placeholder="0.00"
+                                min="0.01"
+                                step="0.01"
+                                value="{% if form_data %}{{ form_data.amount|default:'' }}{% elif expense %}{{ expense.amount }}{% endif %}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- EXPENSE DATE -->
+                    <div class="col-md-6">
+                        <label for="expense_date" class="form-label fw-semibold">
+                            First Expense Date <span class="expense-required">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            name="expense_date"
+                            id="expense_date"
+                            class="form-control"
+                            value="{% if form_data %}{{ form_data.expense_date|default:'' }}{% elif expense %}{{ expense.expense_date|date:'Y-m-d' }}{% endif %}"
+                            required
+                        >
+
+                        <div class="form-text">
+                            For recurring expenses, this is the date of the first occurrence.
+                        </div>
+                    </div>
+
+                    <!-- RECURRENCE SETTINGS -->
+                    <div class="col-12">
+                        <div class="recurring-panel">
+
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div class="text-primary fs-4">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </div>
+
+                                <div>
+                                    <div class="recurring-heading">
+                                        Recurring Expense Settings
+                                    </div>
+                                    <div class="recurring-help">
+                                        Use this for regular expenses such as rent,
+                                        internet, salaries, or annual subscriptions.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <label for="frequency" class="form-label fw-semibold">
+                                        Expense Frequency
+                                    </label>
+
+                                    <select name="frequency"
+                                            id="frequency"
+                                            class="form-select">
+
+                                        {% for value, label in frequency_choices %}
+                                            <option value="{{ value }}"
+                                                {% if form_data %}
+                                                    {% if form_data.frequency == value %}selected{% endif %}
+                                                {% elif expense %}
+                                                    {% if expense.frequency == value %}selected{% endif %}
+                                                {% elif value == "ONCE" %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6"
+                                     id="recurring-end-date-wrapper">
+
+                                    <label for="recurring_end_date"
+                                           class="form-label fw-semibold">
+                                        Recurring End Date
+                                        <span class="text-muted fw-normal">(Optional)</span>
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        name="recurring_end_date"
+                                        id="recurring_end_date"
+                                        class="form-control"
+                                        value="{% if form_data %}{{ form_data.recurring_end_date|default:'' }}{% elif expense %}{{ expense.recurring_end_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                                    >
+
+                                    <div class="form-text">
+                                        Leave blank to continue until you edit or delete the recurring expense.
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="recurring-help mt-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                The first occurrence is recorded on the expense date.
+                                Later occurrences are generated when the Expenses page is opened.
+                                Check your Monthly Profit &amp; Loss report after setting up recurrence.
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="col-12">
+                        <label for="description" class="form-label fw-semibold">
+                            Description
+                        </label>
+
+                        <textarea
+                            name="description"
+                            id="description"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Add notes about this expense (optional)"
+                        >{% if form_data %}{{ form_data.description|default:'' }}{% elif expense %}{{ expense.description|default:'' }}{% endif %}</textarea>
+                    </div>
+
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-end flex-wrap gap-2">
+                    <a href="{% url 'expenses:expense_list' %}"
+                       class="btn btn-light border px-4">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Save Expense
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const frequency = document.getElementById("frequency");
+    const endDateWrapper = document.getElementById(
+        "recurring-end-date-wrapper"
+    );
+    const endDate = document.getElementById("recurring_end_date");
+
+    function updateRecurringFields() {
+        const isRecurring = frequency.value !== "ONCE";
+
+        endDateWrapper.style.display = isRecurring ? "" : "none";
+
+        if (!isRecurring) {
+            endDate.value = "";
+        }
+    }
+
+    frequency.addEventListener("change", updateRecurringFields);
+    updateRecurringFields();
+});
+</script>
+{% endblock %}

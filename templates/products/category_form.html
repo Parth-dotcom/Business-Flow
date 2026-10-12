@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if category %}
+        Edit Category
+    {% else %}
+        Add Category
+    {% endif %}
+    | BusinessFlow
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+
+                {% if category %}
+                    Edit Category
+                {% else %}
+                    Add Category
+                {% endif %}
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                {% if category %}
+                    Update category information.
+                {% else %}
+                    Create a new product category.
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'category_list' %}"
+            class="btn btn-outline-secondary"
+        >
+            ← Back to Categories
+        </a>
+
+    </div>
+
+
+    <!-- Form Card -->
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger">
+
+                    {% for error in form.non_field_errors %}
+
+                        <div>
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <form
+                method="post"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+
+                <!-- Category Name -->
+                <div class="mb-4">
+
+                    <label class="form-label">
+
+                        Category Name
+
+                        <span class="text-danger">
+                            *
+                        </span>
+
+                    </label>
+
+                    {{ form.name }}
+
+
+                    {% if form.name.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {% for error in form.name.errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Description -->
+                <div class="mb-4">
+
+                    <label class="form-label">
+                        Description
+                    </label>
+
+                    {{ form.description }}
+
+
+                    {% if form.description.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {% for error in form.description.errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="pt-3 border-top">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+
+                        {% if category %}
+                            Update Category
+                        {% else %}
+                            Save Category
+                        {% endif %}
+
+                    </button>
+
+
+                    <a
+                        href="{% url 'category_list' %}"
+                        class="btn btn-secondary ms-2"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,629 @@
+
+{% extends "base.html" %}
+
+{% block title %}Sales Report | BusinessFlow{% endblock %}
+{% block page_title %}Sales Report{% endblock %}
+
+{% block content %}
+
+<style>
+.sales-report {
+    width: 100%;
+    margin: 0 auto;
+    color: #172033;
+}
+
+.report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.report-header h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.report-header p {
+    margin: 6px 0 0;
+    color: #697586;
+    font-size: 14px;
+}
+
+.report-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid #d9e0e9;
+    border-radius: 8px;
+    background: #fff;
+    color: #344054;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.report-link:hover {
+    background: #f5f8fc;
+    color: #172033;
+}
+
+.report-filter,
+.report-section,
+.summary-card {
+    background: #fff;
+    border: 1px solid #e2e7ee;
+    border-radius: 11px;
+}
+
+.report-filter {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-heading {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.filter-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #344054;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.filter-field input {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d9dee7;
+    border-radius: 7px;
+    background: #fff;
+    color: #172033;
+    font-size: 13px;
+}
+
+.filter-field input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+}
+
+.filter-btn,
+.reset-btn {
+    height: 44px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.filter-btn {
+    min-width: 125px;
+}
+
+.reset-btn {
+    min-width: 80px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    padding: 18px;
+    min-width: 0;
+}
+
+.summary-label {
+    margin-bottom: 8px;
+    color: #697586;
+    font-size: 13px;
+}
+
+.summary-value {
+    font-size: 23px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.profit-card {
+    background: #f5fcf8;
+    border-color: #cfeede;
+}
+
+.profit-card .summary-value {
+    color: #07834f;
+}
+
+.summary-note {
+    margin-top: 8px;
+    color: #7a8798;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.report-section {
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.report-section-header {
+    padding: 17px 20px;
+    border-bottom: 1px solid #e8ecf1;
+}
+
+.report-section-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.report-section-header p {
+    margin: 4px 0 0;
+    color: #8a94a3;
+    font-size: 12px;
+}
+
+.report-table-wrapper {
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 700px;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.report-table thead th {
+    height: 46px;
+    padding: 0 15px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e3e7ed;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.report-table tbody td {
+    padding: 13px 15px;
+    border-bottom: 1px solid #edf0f4;
+    color: #344054;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.report-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.report-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.report-table a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.report-table a:hover {
+    text-decoration: underline;
+}
+
+.report-empty {
+    padding: 35px 20px;
+    text-align: center;
+    color: #8a94a3;
+    font-size: 13px;
+}
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+}
+
+.payment-item {
+    padding: 15px;
+    border: 1px solid #e5e9ef;
+    border-radius: 8px;
+    min-width: 0;
+}
+
+.payment-name {
+    margin-bottom: 6px;
+    color: #697586;
+    font-size: 12px;
+}
+
+.payment-value {
+    font-size: 19px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.payment-count {
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .payment-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .report-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .report-link {
+        width: 100%;
+    }
+
+    .filter-row,
+    .summary-grid,
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-btn,
+    .reset-btn {
+        width: 100%;
+    }
+
+    .report-filter {
+        padding: 15px;
+    }
+
+    .report-header h2 {
+        font-size: 23px;
+    }
+}
+</style>
+
+<div class="sales-report">
+
+    <!-- PAGE HEADER -->
+    <div class="report-header">
+        <div>
+            <h2>Sales Report</h2>
+            <p>Analyze sales, costs and estimated profit for your selected period.</p>
+        </div>
+
+        <a href="{% url 'sale_list' %}" class="report-link">
+            <i class="bi bi-receipt"></i>
+            View Sales
+        </a>
+    </div>
+
+    <!-- DATE FILTER -->
+    <div class="report-filter">
+        <h5 class="filter-heading">Filter Report</h5>
+
+        <form method="get">
+            <div class="filter-row">
+
+                <div class="filter-field">
+                    <label for="start_date">Start Date</label>
+                    <input
+                        type="date"
+                        name="start_date"
+                        id="start_date"
+                        value="{{ start_date|default:'' }}"
+                    >
+                </div>
+
+                <div class="filter-field">
+                    <label for="end_date">End Date</label>
+                    <input
+                        type="date"
+                        name="end_date"
+                        id="end_date"
+                        value="{{ end_date|default:'' }}"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary filter-btn">
+                    <i class="bi bi-funnel me-1"></i>
+                    Apply Filter
+                </button>
+
+                <a href="{% url 'sales_report' %}"
+                   class="btn btn-outline-secondary reset-btn">
+                    Reset
+                </a>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- SALES SUMMARY -->
+    <div class="summary-grid">
+
+        <div class="summary-card">
+            <div class="summary-label">Total Sales</div>
+            <div class="summary-value">
+                ₹{{ total_sales_amount|floatformat:2 }}
+            </div>
+            <div class="summary-note">Total invoice value</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">Invoices</div>
+            <div class="summary-value">{{ invoice_count }}</div>
+            <div class="summary-note">Invoices in this period</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">Total Discount</div>
+            <div class="summary-value">
+                ₹{{ total_discount|floatformat:2 }}
+            </div>
+            <div class="summary-note">Discounts given to customers</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">Total Tax</div>
+            <div class="summary-value">
+                ₹{{ total_tax|floatformat:2 }}
+            </div>
+            <div class="summary-note">Recorded tax amount</div>
+        </div>
+
+        <!-- PROFIT SUMMARY -->
+        <div class="summary-card profit-card">
+            <div class="summary-label">Estimated Profit</div>
+            <div class="summary-value">
+                ₹{{ report_profit|floatformat:2 }}
+            </div>
+            <div class="summary-note">
+                Subtotal minus discounts and recorded product costs.
+                Excludes tax and other business expenses.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PAYMENT BREAKDOWN -->
+    <div class="report-section">
+        <div class="report-section-header">
+            <h5>Payment Method Breakdown</h5>
+            <p>Sales collected through each payment method.</p>
+        </div>
+
+        <div class="payment-grid">
+            {% for payment in payment_breakdown %}
+                <div class="payment-item">
+                    <div class="payment-name">{{ payment.name }}</div>
+
+                    <div class="payment-value">
+                        ₹{{ payment.total|floatformat:2 }}
+                    </div>
+
+                    <div class="payment-count">
+                        {{ payment.invoices }}
+                        {% if payment.invoices == 1 %}
+                            invoice
+                        {% else %}
+                            invoices
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="report-empty">
+                    No payment data available.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- PRODUCT PERFORMANCE -->
+    <div class="report-section">
+        <div class="report-section-header">
+            <h5>Product Performance</h5>
+            <p>Products ranked by sales amount.</p>
+        </div>
+
+        {% if product_breakdown %}
+            <div class="report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th class="text-center">Quantity Sold</th>
+                            <th class="text-center">Invoices</th>
+                            <th class="text-end">Sales Amount</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in product_breakdown %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ product.product__name }}</strong></td>
+                                <td>{{ product.product__sku }}</td>
+                                <td class="text-center">{{ product.quantity_sold }}</td>
+                                <td class="text-center">{{ product.invoice_count }}</td>
+                                <td class="text-end">
+                                    <strong>
+                                        ₹{{ product.sales_amount|floatformat:2 }}
+                                    </strong>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="report-empty">
+                No product sales found for this period.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- CUSTOMER PERFORMANCE -->
+    <div class="report-section">
+        <div class="report-section-header">
+            <h5>Customer Performance</h5>
+            <p>Customers ranked by total purchase amount.</p>
+        </div>
+
+        {% if customer_breakdown %}
+            <div class="report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th class="text-center">Invoices</th>
+                            <th class="text-end">Total Purchases</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for customer in customer_breakdown %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+
+                                <td>
+                                    {% if customer.customer__id %}
+                                        <a href="{% url 'customer_detail' customer.customer__id %}">
+                                            {{ customer.customer__name }}
+                                        </a>
+                                    {% else %}
+                                        <strong>Walk-in Customer</strong>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ customer.customer__phone|default:"—" }}</td>
+
+                                <td class="text-center">
+                                    {{ customer.invoice_count }}
+                                </td>
+
+                                <td class="text-end">
+                                    <strong>
+                                        ₹{{ customer.total_purchases|floatformat:2 }}
+                                    </strong>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="report-empty">
+                No customer sales found for this period.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- SALES DETAILS -->
+    <div class="report-section">
+        <div class="report-section-header">
+            <h5>Sales Details</h5>
+            <p>Invoices included in this report.</p>
+        </div>
+
+        {% if sales %}
+            <div class="report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Invoice</th>
+                            <th>Customer</th>
+                            <th>Subtotal</th>
+                            <th>Discount</th>
+                            <th>Tax</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for sale in sales %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+
+                                <td>
+                                    <a href="{% url 'sale_detail' sale.id %}">
+                                        {{ sale.invoice_number }}
+                                    </a>
+                                </td>
+
+                                <td>
+                                    {% if sale.customer %}
+                                        <a href="{% url 'customer_detail' sale.customer.id %}">
+                                            {{ sale.customer.name }}
+                                        </a>
+                                    {% else %}
+                                        Walk-in Customer
+                                    {% endif %}
+                                </td>
+
+                                <td>₹{{ sale.subtotal|floatformat:2 }}</td>
+                                <td>₹{{ sale.discount_amount|floatformat:2 }}</td>
+                                <td>₹{{ sale.tax|floatformat:2 }}</td>
+
+                                <td>
+                                    <strong>
+                                        ₹{{ sale.total_amount|floatformat:2 }}
+                                    </strong>
+                                </td>
+
+                                <td>{{ sale.get_payment_method_display }}</td>
+
+                                <td>{{ sale.created_at|date:"d M Y, h:i A" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="report-empty">
+                No invoices found for this period.
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
