@@ -23,7 +23,7 @@ from reportlab.platypus import (
 )
 
 from customers.models import Customer
-from products.models import Product
+from products.models import Product, ProductSize
 from .models import Sale, SaleItem
 
 
@@ -34,59 +34,64 @@ from .models import Sale, SaleItem
 @login_required
 def sale_delete(request, pk):
     sale = get_object_or_404(
-        Sale.objects.prefetch_related("items__product"),
+        Sale.objects.prefetch_related("items__product", "items__product_size"),
         pk=pk,
     )
 
     if request.method == "POST":
         with transaction.atomic():
-            for item in sale.items.all():
-                product = (
-                    Product.objects.select_for_update()
-                    .get(pk=item.product.id)
-                )
+            for item in sale.items.select_related("product", "product_size").all():
+                product = Product.objects.select_for_update().get(pk=item.product_id)
+                if item.product_size_id:
+                    size_row = ProductSize.objects.select_for_update().get(pk=item.product_size_id)
+                    size_row.stock += item.quantity
+                    size_row.save(update_fields=["stock"])
                 product.stock += item.quantity
                 product.save(update_fields=["stock", "updated_at"])
-
             sale.delete()
 
-        messages.success(
-            request,
-            "Invoice deleted successfully and stock has been restored.",
-        )
+        messages.success(request, "Invoice deleted successfully and stock has been restored.")
         return redirect("sale_list")
 
-    return render(
-        request,
-        "sales/sale_confirm_delete.html",
-        {"sale": sale},
-    )
+    return render(request, "sales/sale_confirm_delete.html", {"sale": sale})
 
 
 # =========================================================
 # PDF FONT SETUP
 # =========================================================
 
+# Arial is used for normal invoice text when available.
 FONT_PATH = "C:/Windows/Fonts/arial.ttf"
 FONT_BOLD_PATH = "C:/Windows/Fonts/arialbd.ttf"
 
+# Optional Cormorant Garamond font files for the Ananta Aura brand heading.
+# Download/install these fonts and update the paths if needed.
+LUXURY_FONT_PATH = "C:/Windows/Fonts/CormorantGaramond-Regular.ttf"
+LUXURY_FONT_BOLD_PATH = "C:/Windows/Fonts/CormorantGaramond-SemiBold.ttf"
+
 if os.path.exists(FONT_PATH):
-    pdfmetrics.registerFont(TTFont("BusinessFlowFont", FONT_PATH))
-
+    pdfmetrics.registerFont(TTFont("AnantaAuraBody", FONT_PATH))
     if os.path.exists(FONT_BOLD_PATH):
-        pdfmetrics.registerFont(
-            TTFont("BusinessFlowFontBold", FONT_BOLD_PATH)
-        )
+        pdfmetrics.registerFont(TTFont("AnantaAuraBodyBold", FONT_BOLD_PATH))
     else:
-        pdfmetrics.registerFont(
-            TTFont("BusinessFlowFontBold", FONT_PATH)
-        )
-
-    PDF_FONT = "BusinessFlowFont"
-    PDF_BOLD_FONT = "BusinessFlowFontBold"
+        pdfmetrics.registerFont(TTFont("AnantaAuraBodyBold", FONT_PATH))
+    PDF_FONT = "AnantaAuraBody"
+    PDF_BOLD_FONT = "AnantaAuraBodyBold"
 else:
     PDF_FONT = "Helvetica"
     PDF_BOLD_FONT = "Helvetica-Bold"
+
+if os.path.exists(LUXURY_FONT_PATH):
+    pdfmetrics.registerFont(TTFont("AnantaAuraBrand", LUXURY_FONT_PATH))
+    PDF_BRAND_FONT = "AnantaAuraBrand"
+else:
+    PDF_BRAND_FONT = PDF_BOLD_FONT
+
+if os.path.exists(LUXURY_FONT_BOLD_PATH):
+    pdfmetrics.registerFont(TTFont("AnantaAuraBrandBold", LUXURY_FONT_BOLD_PATH))
+    PDF_BRAND_BOLD_FONT = "AnantaAuraBrandBold"
+else:
+    PDF_BRAND_BOLD_FONT = PDF_BOLD_FONT
 
 
 # =========================================================
@@ -123,7 +128,10 @@ def generate_invoice_number():
 def sale_list(request):
     sales = (
         Sale.objects.select_related("customer", "created_by")
-        .prefetch_related("items__product")
+        .prefetch_related(
+            "items__product",
+            "items__product_size",
+        )
         .order_by("-created_at")
     )
 
@@ -142,7 +150,7 @@ def sale_list(request):
 def sale_detail(request, pk):
     sale = get_object_or_404(
         Sale.objects.select_related("customer", "created_by")
-        .prefetch_related("items__product"),
+        .prefetch_related("items__product", "items__product_size"),
         pk=pk,
     )
 
@@ -153,6 +161,7 @@ def sale_detail(request, pk):
     )
 
 
+
 # =========================================================
 # SALE PDF
 # =========================================================
@@ -160,8 +169,13 @@ def sale_detail(request, pk):
 @login_required
 def sale_pdf(request, pk):
     sale = get_object_or_404(
-        Sale.objects.select_related("customer", "created_by")
-        .prefetch_related("items__product"),
+        Sale.objects.select_related(
+            "customer",
+            "created_by",
+        ).prefetch_related(
+            "items__product",
+            "items__product_size",
+        ),
         pk=pk,
     )
 
@@ -179,19 +193,28 @@ def sale_pdf(request, pk):
         leftMargin=15 * mm,
         topMargin=14 * mm,
         bottomMargin=14 * mm,
-        title=f"Invoice {sale.invoice_number}",
-        author="BusinessFlow",
+        title=f"Ananta Aura Invoice {sale.invoice_number}",
+        author="Ananta Aura",
     )
 
     styles = getSampleStyleSheet()
 
     title_style = ParagraphStyle(
-        "BusinessFlowTitle",
+        "AnantaAuraTitle",
         parent=styles["Normal"],
-        fontName=PDF_BOLD_FONT,
-        fontSize=20,
-        leading=23,
-        textColor=colors.HexColor("#172033"),
+        fontName=PDF_BRAND_FONT,
+        fontSize=25,
+        leading=29,
+        textColor=colors.HexColor("#231F20"),
+    )
+
+    address_style = ParagraphStyle(
+        "AnantaAuraAddress",
+        parent=styles["Normal"],
+        fontName=PDF_FONT,
+        fontSize=8,
+        leading=11,
+        textColor=colors.HexColor("#555555"),
     )
 
     invoice_label_style = ParagraphStyle(
@@ -280,19 +303,25 @@ def sale_pdf(request, pk):
 
     story = []
 
-    # Header
+    # -----------------------------------------------------
+    # BRAND HEADER
+    # -----------------------------------------------------
+
     header_data = [
         [
-            Paragraph("BusinessFlow", title_style),
+            Paragraph("ANANTA AURA", title_style),
             Paragraph("INVOICE", invoice_label_style),
         ],
         [
-            Paragraph("Business Management System", small_style),
             Paragraph(
-                (
-                    f"<b>{sale.invoice_number}</b><br/>"
-                    f"{local_created_at.strftime('%d %b %Y, %I:%M %p')}"
-                ),
+                "WOMEN'S ETHNIC WEAR<br/>"
+                "Shop No. 8, 9th Avenue Building,<br/>"
+                "Near Nanavati Chowk, Rajkot - 360007",
+                address_style,
+            ),
+            Paragraph(
+                f"<b>{sale.invoice_number}</b><br/>"
+                f"{local_created_at.strftime('%d %b %Y, %I:%M %p')}",
                 invoice_number_style,
             ),
         ],
@@ -304,42 +333,54 @@ def sale_pdf(request, pk):
     )
 
     header_table.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                (
-                    "LINEBELOW",
-                    (0, -1),
-                    (-1, -1),
-                    1.2,
-                    colors.HexColor("#172033"),
-                ),
-                ("BOTTOMPADDING", (0, -1), (-1, -1), 9),
-            ]
-        )
+        TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+            (
+                "LINEBELOW",
+                (0, -1),
+                (-1, -1),
+                1.2,
+                colors.HexColor("#172033"),
+            ),
+            ("BOTTOMPADDING", (0, -1), (-1, -1), 9),
+        ])
     )
 
     story.append(header_table)
     story.append(Spacer(1, 7 * mm))
 
-    # Customer and payment information
+    # -----------------------------------------------------
+    # CUSTOMER INFORMATION
+    # -----------------------------------------------------
+
     if sale.customer:
-        customer_lines = [f"<b>{sale.customer.name}</b>"]
+        customer_lines = [
+            f"<b>{sale.customer.name}</b>"
+        ]
 
         if sale.customer.phone:
-            customer_lines.append(f"Phone: {sale.customer.phone}")
+            customer_lines.append(
+                f"Phone: {sale.customer.phone}"
+            )
 
         if sale.customer.email:
-            customer_lines.append(f"Email: {sale.customer.email}")
+            customer_lines.append(
+                f"Email: {sale.customer.email}"
+            )
 
         if sale.customer.city:
-            customer_lines.append(f"City: {sale.customer.city}")
+            customer_lines.append(
+                f"City: {sale.customer.city}"
+            )
 
         if sale.customer.address:
-            customer_lines.append(f"Address: {sale.customer.address}")
+            customer_lines.append(
+                f"Address: {sale.customer.address}"
+            )
 
         customer_text = "<br/>".join(customer_lines)
+
     else:
         customer_text = "<b>Walk-in Customer</b>"
 
@@ -348,20 +389,26 @@ def sale_pdf(request, pk):
         sale.payment_method,
     )
 
-    customer_payment_data = [
-        [
-            Paragraph(
-                "<b>Customer Information</b><br/>" + customer_text,
-                normal_style,
-            ),
-            Paragraph(
-                "<b>Payment Information</b><br/>"
-                f"Payment Method: {payment_name}<br/>"
-                f"Created By: {sale.created_by.username}",
-                normal_style,
-            ),
-        ]
-    ]
+    created_by_name = (
+        sale.created_by.username
+        if sale.created_by
+        else "Admin"
+    )
+
+    customer_payment_data = [[
+        Paragraph(
+            "<b>Customer Information</b><br/>"
+            + customer_text,
+            normal_style,
+        ),
+        Paragraph(
+            "<b>Payment Information</b><br/>"
+            f"Payment Method: {payment_name}<br/>"
+            f"Created By: {created_by_name}<br/>"
+            f"Invoice Number: {sale.invoice_number}",
+            normal_style,
+        ),
+    ]]
 
     customer_payment_table = Table(
         customer_payment_data,
@@ -369,129 +416,173 @@ def sale_pdf(request, pk):
     )
 
     customer_payment_table.setStyle(
-        TableStyle(
-            [
-                (
-                    "BACKGROUND",
-                    (0, 0),
-                    (-1, -1),
-                    colors.HexColor("#F8FAFC"),
-                ),
-                (
-                    "BOX",
-                    (0, 0),
-                    (-1, -1),
-                    0.7,
-                    colors.HexColor("#DCE2EA"),
-                ),
-                (
-                    "INNERGRID",
-                    (0, 0),
-                    (-1, -1),
-                    0.5,
-                    colors.HexColor("#E5E7EB"),
-                ),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 9),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
-            ]
-        )
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, -1),
+                colors.HexColor("#F8FAFC"),
+            ),
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.7,
+                colors.HexColor("#DCE2EA"),
+            ),
+            (
+                "INNERGRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#E5E7EB"),
+            ),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+        ])
     )
 
     story.append(customer_payment_table)
     story.append(Spacer(1, 7 * mm))
 
-    # Products
-    product_rows = [
-        [
-            Paragraph("#", table_header_style),
-            Paragraph("Product", table_header_style),
-            Paragraph("SKU", table_header_style),
-            Paragraph("Qty", table_header_style),
-            Paragraph("Unit Price", table_header_style),
-            Paragraph("Total", table_header_style),
-        ]
-    ]
+    # -----------------------------------------------------
+    # PRODUCTS — INCLUDING SIZE
+    # -----------------------------------------------------
 
-    for index, item in enumerate(sale.items.all(), start=1):
-        product_rows.append(
-            [
-                str(index),
-                Paragraph(item.product.name, normal_style),
-                Paragraph(item.product.sku, small_style),
-                str(item.quantity),
-                Paragraph(f"₹{item.unit_price:.2f}", normal_style),
-                Paragraph(f"₹{item.total_price:.2f}", bold_style),
-            ]
+    product_rows = [[
+        Paragraph("#", table_header_style),
+        Paragraph("Product", table_header_style),
+        Paragraph("SKU", table_header_style),
+        Paragraph("Size", table_header_style),
+        Paragraph("Quantity", table_header_style),
+        Paragraph("Unit Price", table_header_style),
+        Paragraph("Total", table_header_style),
+    ]]
+
+    sale_items = sale.items.select_related(
+        "product",
+        "product_size",
+    ).all()
+
+    for index, item in enumerate(sale_items, start=1):
+        product_name = (
+            str(item.product.name)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
         )
+
+        sku = (
+            str(getattr(item.product, "sku", "") or "")
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
+        size_name = (
+            str(item.product_size.size)
+            if item.product_size_id
+            else "Not recorded"
+        )
+
+        product_rows.append([
+            str(index),
+            Paragraph(product_name, normal_style),
+            Paragraph(sku, small_style),
+            str(size_name),
+            str(item.quantity),
+            Paragraph(
+                f"Rs. {item.unit_price:.2f}",
+                normal_style,
+            ),
+            Paragraph(
+                f"Rs. {item.total_price:.2f}",
+                bold_style,
+            ),
+        ])
 
     product_table = Table(
         product_rows,
         colWidths=[
-            10 * mm,
-            55 * mm,
+            7 * mm,
+            39 * mm,
+            22 * mm,
+            19 * mm,
+            17 * mm,
             30 * mm,
-            15 * mm,
-            30 * mm,
-            30 * mm,
+            29 * mm,
         ],
         repeatRows=1,
     )
 
     product_table.setStyle(
-        TableStyle(
-            [
-                (
-                    "BACKGROUND",
-                    (0, 0),
-                    (-1, 0),
-                    colors.HexColor("#EEF4FF"),
-                ),
-                (
-                    "GRID",
-                    (0, 0),
-                    (-1, -1),
-                    0.5,
-                    colors.HexColor("#DCE2EA"),
-                ),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                ("ALIGN", (3, 0), (3, -1), "CENTER"),
-                ("ALIGN", (4, 0), (5, -1), "RIGHT"),
-                ("TOPPADDING", (0, 0), (-1, -1), 7),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#EEF4FF"),
+            ),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#DCE2EA"),
+            ),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (0, -1), "CENTER"),
+            ("ALIGN", (3, 0), (4, -1), "CENTER"),
+            ("ALIGN", (5, 0), (6, -1), "RIGHT"),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ])
     )
 
-    story.append(Paragraph("Products", section_title_style))
+    story.append(
+        Paragraph("Products", section_title_style)
+    )
     story.append(Spacer(1, 2 * mm))
     story.append(product_table)
     story.append(Spacer(1, 7 * mm))
 
-    # Discount label
+    # -----------------------------------------------------
+    # BILL SUMMARY
+    # -----------------------------------------------------
+
     if sale.discount_type == "PERCENTAGE":
-        discount_label = f"Discount ({sale.discount}%)"
+        discount_label = (
+            f"Discount ({sale.discount}%)"
+        )
     else:
         discount_label = "Discount (Fixed)"
 
-    # Bill summary
     summary_rows = [
         [
             Paragraph("Subtotal", normal_style),
-            Paragraph(f"₹{sale.subtotal:.2f}", normal_style),
+            Paragraph(
+                f"Rs. {sale.subtotal:.2f}",
+                normal_style,
+            ),
         ],
         [
             Paragraph(discount_label, normal_style),
-            Paragraph(f"- ₹{sale.discount_amount:.2f}", normal_style),
+            Paragraph(
+                f"- Rs. {sale.discount_amount:.2f}",
+                normal_style,
+            ),
         ],
         [
             Paragraph("Tax", normal_style),
-            Paragraph(f"₹{sale.tax:.2f}", normal_style),
+            Paragraph(
+                f"Rs. {sale.tax:.2f}",
+                normal_style,
+            ),
         ],
     ]
 
@@ -501,41 +592,38 @@ def sale_pdf(request, pk):
     )
 
     summary_table.setStyle(
-        TableStyle(
-            [
-                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                (
-                    "LINEABOVE",
-                    (0, 0),
-                    (-1, 0),
-                    0.5,
-                    colors.HexColor("#E5E7EB"),
-                ),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ]
-        )
+        TableStyle([
+            ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+            (
+                "LINEABOVE",
+                (0, 0),
+                (-1, 0),
+                0.5,
+                colors.HexColor("#E5E7EB"),
+            ),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ])
     )
 
-    story.append(Paragraph("Bill Summary", section_title_style))
+    story.append(
+        Paragraph("Bill Summary", section_title_style)
+    )
     story.append(Spacer(1, 2 * mm))
     story.append(summary_table)
     story.append(Spacer(1, 3 * mm))
 
-    # Grand total
-    grand_total_data = [
-        [
-            Paragraph(
-                "<b>Grand Total</b><br/>"
-                "<font size='7'>Total amount payable</font>",
-                grand_total_label_style,
-            ),
-            Paragraph(
-                f"₹{sale.total_amount:.2f}",
-                grand_total_value_style,
-            ),
-        ]
-    ]
+    grand_total_data = [[
+        Paragraph(
+            "<b>Grand Total</b><br/>"
+            "<font size='7'>Total amount payable</font>",
+            grand_total_label_style,
+        ),
+        Paragraph(
+            f"Rs. {sale.total_amount:.2f}",
+            grand_total_value_style,
+        ),
+    ]]
 
     grand_total_table = Table(
         grand_total_data,
@@ -543,50 +631,47 @@ def sale_pdf(request, pk):
     )
 
     grand_total_table.setStyle(
-        TableStyle(
-            [
-                (
-                    "BACKGROUND",
-                    (0, 0),
-                    (-1, -1),
-                    colors.HexColor("#F4F7FF"),
-                ),
-                (
-                    "BOX",
-                    (0, 0),
-                    (-1, -1),
-                    0.8,
-                    colors.HexColor("#CBD9F7"),
-                ),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 9),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
-            ]
-        )
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, -1),
+                colors.HexColor("#F4F7FF"),
+            ),
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.8,
+                colors.HexColor("#CBD9F7"),
+            ),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+        ])
     )
 
     story.append(grand_total_table)
     story.append(Spacer(1, 5 * mm))
-
-    # Payment note
     story.append(
         Paragraph(
             f"Payment recorded as <b>{payment_name}</b>",
             small_style,
         )
     )
-
     story.append(Spacer(1, 8 * mm))
     story.append(
-        Paragraph("Thank you for your business.", small_style)
+        Paragraph(
+            "Thank you for shopping with Ananta Aura.",
+            small_style,
+        )
     )
 
     document.build(story)
     return response
-
 
 # =========================================================
 # NEW SALE
@@ -594,347 +679,121 @@ def sale_pdf(request, pk):
 
 @login_required
 def new_sale(request):
-    customers = (
-        Customer.objects.filter(is_active=True).order_by("name")
-    )
-
+    customers = Customer.objects.filter(is_active=True).order_by("name")
     products = (
         Product.objects.filter(is_active=True)
         .select_related("category")
+        .prefetch_related("sizes")
         .order_by("name")
     )
 
+    def render_form():
+        return render(request, "sales/new_sale.html", {"customers": customers, "products": products})
+
     if request.method == "POST":
-        customer_id = request.POST.get("customer")
+        customer_id = request.POST.get("customer", "").strip()
         product_ids = request.POST.getlist("product_ids")
+        product_size_ids = request.POST.getlist("product_size_ids")
         quantities = request.POST.getlist("quantities")
         discount_type = request.POST.get("discount_type", "PERCENTAGE")
-        discount_value = request.POST.get("discount", "0")
-        tax_value = request.POST.get("tax", "0")
         payment_method = request.POST.get("payment_method", "CASH")
 
-        # Customer validation
-        customer = None
-
-        if customer_id:
-            customer = Customer.objects.filter(
-                pk=customer_id,
-                is_active=True,
-            ).first()
-
-            if not customer:
-                messages.error(
-                    request,
-                    "Selected customer is not available.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-        # Product validation
-        if not product_ids:
-            messages.error(
-                request,
-                "Please add at least one product.",
-            )
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
-
-        if len(product_ids) != len(quantities):
-            messages.error(
-                request,
-                "Product and quantity information is invalid.",
-            )
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
-
-        # Build cart and merge duplicate product rows
-        cart = []
-
-        for product_id, quantity_value in zip(
-            product_ids,
-            quantities,
-        ):
-            product = Product.objects.filter(
-                pk=product_id,
-                is_active=True,
-            ).first()
-
-            if not product:
-                messages.error(
-                    request,
-                    "One of the selected products is no longer "
-                    "available. Please refresh the page and add "
-                    "the products again.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-            try:
-                quantity = int(quantity_value)
-            except (TypeError, ValueError):
-                messages.error(
-                    request,
-                    f"Invalid quantity for {product.name}.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-            if quantity < 1:
-                messages.error(
-                    request,
-                    f"Quantity for {product.name} must be at least 1.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-            existing_item = next(
-                (
-                    item for item in cart
-                    if item["product"].id == product.id
-                ),
-                None,
-            )
-
-            if existing_item:
-                existing_item["quantity"] += quantity
-            else:
-                cart.append(
-                    {
-                        "product": product,
-                        "quantity": quantity,
-                    }
-                )
-
-        # Initial stock check
-        for item in cart:
-            product = item["product"]
-            quantity = item["quantity"]
-
-            if quantity > product.stock:
-                messages.error(
-                    request,
-                    f"Only {product.stock} unit(s) of "
-                    f"{product.name} are available in stock.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-        # Calculate subtotal
-        subtotal = Decimal("0.00")
-
-        for item in cart:
-            product = item["product"]
-            quantity = item["quantity"]
-            item_total = product.price * quantity
-
-            item["unit_price"] = product.price
-            item["total_price"] = item_total
-            subtotal += item_total
-
-        # Validate discount
-        try:
-            discount_value = Decimal(discount_value)
-        except (InvalidOperation, TypeError, ValueError):
-            messages.error(
-                request,
-                "Please enter a valid discount.",
-            )
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
-
-        if discount_value < 0:
-            messages.error(
-                request,
-                "Discount cannot be negative.",
-            )
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
-
-        if discount_type == "PERCENTAGE":
-            if discount_value > 100:
-                messages.error(
-                    request,
-                    "Percentage discount cannot be more than 100%.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-            discount_amount = (
-                subtotal * discount_value / Decimal("100")
-            )
-
-        elif discount_type == "AMOUNT":
-            if discount_value > subtotal:
-                messages.error(
-                    request,
-                    "Fixed discount cannot be greater than the subtotal.",
-                )
-                return render(
-                    request,
-                    "sales/new_sale.html",
-                    {"customers": customers, "products": products},
-                )
-
-            discount_amount = discount_value
-
-        else:
+        if not product_ids or len(product_ids) != len(product_size_ids) or len(product_ids) != len(quantities):
+            messages.error(request, "Please add at least one product with a size and quantity.")
+            return render_form()
+        if discount_type not in ("PERCENTAGE", "AMOUNT"):
             messages.error(request, "Invalid discount type.")
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
+            return render_form()
+        if payment_method not in ("CASH", "CARD", "UPI", "OTHER"):
+            messages.error(request, "Invalid payment method.")
+            return render_form()
 
-        # Validate tax
+        customer = None
+        if customer_id:
+            customer = Customer.objects.filter(pk=customer_id, is_active=True).first()
+            if not customer:
+                messages.error(request, "Selected customer is not available.")
+                return render_form()
+
+        # Each cart line is identified by product AND size.
+        cart = {}
         try:
-            tax = Decimal(tax_value)
+            for product_id_raw, size_id_raw, quantity_raw in zip(product_ids, product_size_ids, quantities):
+                product_id = int(product_id_raw)
+                size_id = int(size_id_raw)
+                quantity = int(quantity_raw)
+                if product_id <= 0 or size_id <= 0 or quantity < 1:
+                    raise ValueError
+                key = (product_id, size_id)
+                cart[key] = cart.get(key, 0) + quantity
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid product, size, or quantity.")
+            return render_form()
+
+        try:
+            discount_value = Decimal(request.POST.get("discount", "0") or "0")
+            tax = Decimal(request.POST.get("tax", "0") or "0")
+            if not discount_value.is_finite() or not tax.is_finite():
+                raise InvalidOperation
         except (InvalidOperation, TypeError, ValueError):
-            messages.error(
-                request,
-                "Please enter a valid tax amount.",
-            )
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
+            messages.error(request, "Enter valid discount and tax values.")
+            return render_form()
+        if discount_value < 0 or tax < 0:
+            messages.error(request, "Discount and tax cannot be negative.")
+            return render_form()
 
-        if tax < 0:
-            messages.error(request, "Tax cannot be negative.")
-            return render(
-                request,
-                "sales/new_sale.html",
-                {"customers": customers, "products": products},
-            )
-
-        # Calculate final total
-        taxable_amount = subtotal - discount_amount
-
-        if taxable_amount < 0:
-            taxable_amount = Decimal("0.00")
-
-        total_amount = taxable_amount + tax
-
-        # Create invoice and sale items in one transaction
         with transaction.atomic():
-            locked_products = {}
+            locked_lines = []
+            subtotal = Decimal("0.00")
+            for (product_id, size_id), quantity in sorted(cart.items()):
+                product = Product.objects.select_for_update().filter(pk=product_id, is_active=True).first()
+                size_row = ProductSize.objects.select_for_update().filter(pk=size_id, product_id=product_id).first()
+                if not product or not size_row:
+                    messages.error(request, "A selected product or size is no longer available. Please refresh and try again.")
+                    return render_form()
+                if quantity > size_row.stock:
+                    messages.error(request, f"Only {size_row.stock} piece(s) of {product.name} size {size_row.size} are available.")
+                    return render_form()
+                line_total = (product.price * quantity).quantize(Decimal("0.01"))
+                subtotal += line_total
+                locked_lines.append({"product": product, "size": size_row, "quantity": quantity, "unit_price": product.price, "cost_price": product.cost_price, "total_price": line_total})
 
-            for item in cart:
-                product_id = item["product"].id
+            subtotal = subtotal.quantize(Decimal("0.01"))
+            if discount_type == "PERCENTAGE":
+                if discount_value > 100:
+                    messages.error(request, "Percentage discount cannot exceed 100%.")
+                    return render_form()
+                discount_amount = (subtotal * discount_value / Decimal("100")).quantize(Decimal("0.01"))
+            else:
+                if discount_value > subtotal:
+                    messages.error(request, "Fixed discount cannot exceed the subtotal.")
+                    return render_form()
+                discount_amount = discount_value.quantize(Decimal("0.01"))
+            tax = tax.quantize(Decimal("0.01"))
+            total_amount = (subtotal - discount_amount + tax).quantize(Decimal("0.01"))
 
-                locked_product = (
-                    Product.objects.select_for_update()
-                    .filter(pk=product_id, is_active=True)
-                    .first()
-                )
-
-                if not locked_product:
-                    messages.error(
-                        request,
-                        "One of the selected products is no longer "
-                        "available.",
-                    )
-                    return render(
-                        request,
-                        "sales/new_sale.html",
-                        {"customers": customers, "products": products},
-                    )
-
-                locked_products[product_id] = locked_product
-
-            # Recheck stock after locking products
-            for item in cart:
-                product = locked_products[item["product"].id]
-                quantity = item["quantity"]
-
-                if quantity > product.stock:
-                    messages.error(
-                        request,
-                        f"Only {product.stock} unit(s) of "
-                        f"{product.name} are available in stock.",
-                    )
-                    return render(
-                        request,
-                        "sales/new_sale.html",
-                        {"customers": customers, "products": products},
-                    )
-
-            # Create one invoice for all items
             sale = Sale.objects.create(
-                invoice_number=generate_invoice_number(),
-                customer=customer,
-                created_by=request.user,
-                subtotal=subtotal,
-                discount_type=discount_type,
-                discount=discount_value,
-                discount_amount=discount_amount,
-                tax=tax,
-                total_amount=total_amount,
-                payment_method=payment_method,
+                invoice_number=generate_invoice_number(), customer=customer,
+                created_by=request.user, subtotal=subtotal,
+                discount_type=discount_type, discount=discount_value,
+                discount_amount=discount_amount, tax=tax,
+                total_amount=total_amount, payment_method=payment_method,
             )
-
-            # Create sale items and snapshot purchase cost
-            for item in cart:
-                product = locked_products[item["product"].id]
-                quantity = item["quantity"]
-
+            for line in locked_lines:
                 SaleItem.objects.create(
-                    sale=sale,
-                    product=product,
-                    quantity=quantity,
-                    unit_price=product.price,
-                    cost_price=product.cost_price,
-                    total_price=product.price * quantity,
+                    sale=sale, product=line["product"], product_size=line["size"],
+                    quantity=line["quantity"], unit_price=line["unit_price"],
+                    cost_price=line["cost_price"], total_price=line["total_price"],
                 )
+                line["size"].stock -= line["quantity"]
+                line["size"].save(update_fields=["stock"])
+                line["product"].stock -= line["quantity"]
+                line["product"].save(update_fields=["stock", "updated_at"])
 
-                # Reduce stock
-                product.stock -= quantity
-                product.save(
-                    update_fields=["stock", "updated_at"]
-                )
-
-        messages.success(
-            request,
-            f"Sale {sale.invoice_number} created successfully.",
-        )
-
+        messages.success(request, f"Sale {sale.invoice_number} created successfully.")
         return redirect("sale_list")
 
-    return render(
-        request,
-        "sales/new_sale.html",
-        {"customers": customers, "products": products},
-    )
+    return render_form()
 
 
 

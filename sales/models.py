@@ -1,3 +1,4 @@
+
 from decimal import Decimal
 
 from django.conf import settings
@@ -101,6 +102,14 @@ class SaleItem(models.Model):
         related_name="sale_items"
     )
 
+    product_size = models.ForeignKey(
+        "products.ProductSize",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="sale_items"
+    )
+
     quantity = models.PositiveIntegerField()
 
     unit_price = models.DecimalField(
@@ -120,4 +129,9 @@ class SaleItem(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product.name} - {self.quantity}"
+        size_label = (
+            f" - {self.product_size.size}"
+            if self.product_size
+            else ""
+        )
+        return f"{self.product.name}{size_label} - {self.quantity}"

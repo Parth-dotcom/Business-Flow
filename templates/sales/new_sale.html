@@ -1,546 +1,541 @@
 {% extends "base.html" %}
-{% block title %}
-    {% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %} | BusinessFlow
-{% endblock %}
-{% block page_title %}
-    {% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %}
-{% endblock %}
+{% block title %}{% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %} | Ananta Aura{% endblock %}
+{% block page_title %}{% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %}{% endblock %}
+
 {% block content %}
 <style>
-    /* =========================================
-       NEW SALE PAGE
-    ========================================= */
-    .sale-page {
-        max-width: 1600px;
-        margin: 0 auto;
+.sale-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 12px 16px 24px;
+    color: #172b4d;
+    font-size: 14px;
+}
+
+.sale-page * { box-sizing: border-box; }
+
+.sale-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sale-heading {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 750;
+    color: #142746;
+}
+
+.sale-description {
+    margin: 4px 0 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+.sale-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 7px rgba(20, 40, 80, .035);
+}
+
+.sale-card-header {
+    min-height: 48px;
+    padding: 12px 17px;
+    border-bottom: 1px solid #edf1f7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sale-card-title {
+    font-size: 15px;
+    font-weight: 750;
+    margin: 0;
+    color: #172b4d;
+}
+
+.sale-card-body { padding: 15px 17px; }
+
+.sale-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #465671;
+}
+
+.sale-page .form-control,
+.sale-page .form-select {
+    min-height: 39px;
+    height: 39px;
+    border: 1px solid #d8e1ee;
+    border-radius: 7px;
+    font-size: 13px;
+    color: #243650;
+    box-shadow: none;
+}
+
+.sale-page .form-control:focus,
+.sale-page .form-select:focus {
+    border-color: #3978f6;
+    box-shadow: 0 0 0 3px rgba(57, 120, 246, .10);
+}
+
+.sale-page .btn {
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.sale-page .btn-primary {
+    background: #2868ed;
+    border-color: #2868ed;
+}
+
+.sale-page .btn-primary:hover {
+    background: #1d55ce;
+    border-color: #1d55ce;
+}
+
+.sale-page .btn-outline-secondary {
+    border-color: #d4deeb;
+    color: #53647e;
+}
+
+.sale-page .btn-sm { padding: 5px 9px; }
+
+.sale-info-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(200px, 1fr);
+    gap: 15px;
+}
+
+.product-add-area {
+    background: #f7f9fe;
+    border: 1px solid #e3eaf7;
+    border-radius: 9px;
+    padding: 13px;
+}
+
+/* Product, size, quantity and button layout */
+.product-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 2.1fr)
+        minmax(140px, 1fr)
+        100px
+        125px;
+    gap: 12px;
+    align-items: start;
+}
+
+.product-grid > div { min-width: 0; }
+
+.product-grid .sale-label {
+    height: 18px;
+    margin: 0 0 6px;
+    line-height: 18px;
+}
+
+.product-grid .form-control,
+.product-grid .form-select,
+.product-grid .add-product-btn {
+    height: 39px;
+    min-height: 39px;
+}
+
+.product-grid .stock-info {
+    min-height: 16px;
+    margin-top: 5px;
+    color: #74839a;
+    font-size: 11px;
+}
+
+/*
+The input labels occupy 24px above the fields.
+Use the same 24px offset for the button.
+Do not add a label inside the button column.
+*/
+.product-add-column {
+    padding-top: 24px;
+}
+
+.product-grid .add-product-btn {
+    display: block;
+    width: 100%;
+    height: 39px;
+    min-height: 39px;
+    margin: 0;
+    padding: 0 8px;
+    white-space: nowrap;
+}
+
+.invoice-table {
+    margin: 0;
+    font-size: 13px;
+}
+
+.invoice-table thead th {
+    background: #f5f8fd;
+    color: #62718a;
+    font-size: 10px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: .45px;
+    white-space: nowrap;
+    border-bottom: 1px solid #e4eaf3;
+    padding: 11px 13px;
+}
+
+.invoice-table tbody td {
+    padding: 10px 13px;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.invoice-table tbody tr:last-child td { border-bottom: 0; }
+
+.product-name {
+    color: #1d3151;
+    font-weight: 700;
+}
+
+.product-sku {
+    color: #8491a5;
+    font-size: 12px;
+}
+
+.size-badge {
+    display: inline-block;
+    min-width: 29px;
+    padding: 4px 7px;
+    text-align: center;
+    color: #245ed5;
+    background: #edf4ff;
+    border: 1px solid #dce9ff;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.quantity-input {
+    width: 72px;
+    min-height: 33px !important;
+    height: 33px !important;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 23px 12px;
+    color: #8a97aa;
+    font-size: 13px;
+}
+
+.billing-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+.discount-toggle {
+    display: flex;
+    border: 1px solid #dce5f2;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 13px;
+}
+
+.discount-toggle label {
+    flex: 1;
+    margin: 0;
+    cursor: pointer;
+}
+
+.discount-toggle label + label {
+    border-left: 1px solid #dce5f2;
+}
+
+.discount-toggle input {
+    margin: 0 5px 0 0;
+    accent-color: #2868ed;
+}
+
+.discount-toggle span {
+    display: block;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 650;
+    color: #53647e;
+}
+
+.discount-toggle label:has(input:checked) { background: #edf4ff; }
+.discount-toggle label:has(input:checked) span { color: #245ed5; }
+
+.summary-card { border-color: #dbe6f8; }
+.summary-card .sale-card-header { background: #f8faff; }
+
+.summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    color: #687890;
+    font-size: 13px;
+}
+
+.summary-row strong {
+    color: #233653;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.summary-divider {
+    border: 0;
+    border-top: 1px solid #e3eaf4;
+    margin: 7px 0;
+}
+
+.grand-total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0 10px;
+}
+
+.grand-total-label {
+    font-size: 14px;
+    font-weight: 750;
+    color: #233653;
+}
+
+.grand-total-value {
+    font-size: 25px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #2868ed;
+    white-space: nowrap;
+}
+
+.create-btn {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 7px;
+    background: #2868ed !important;
+    border-color: #2868ed !important;
+    font-size: 14px !important;
+    font-weight: 750 !important;
+}
+
+.create-btn:hover { background: #1d55ce !important; }
+
+.section-count {
+    color: #7b8ba4;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+    .product-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(130px, 1fr);
     }
-    /* =========================================
-       PAGE HEADER
-    ========================================= */
-    .sale-page-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        margin-bottom: 28px;
+
+    .product-add-column { padding-top: 24px; }
+
+    .billing-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 767px) {
+    .sale-page { padding: 8px 8px 20px; }
+    .sale-heading { font-size: 22px; }
+    .sale-topbar { align-items: flex-start; }
+
+    .sale-info-grid,
+    .product-grid,
+    .billing-grid {
+        grid-template-columns: 1fr;
     }
-    .sale-page-header-left {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-    }
-    .sale-page-icon {
-        width: 58px;
-        height: 58px;
-        border-radius: 14px;
-        background: #eef4ff;
-        color: #2563eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 25px;
-        flex-shrink: 0;
-    }
-    .sale-page-header h2 {
-        margin: 0;
-        font-size: 30px;
-        font-weight: 700;
-        color: #172033;
-    }
-    .sale-page-header p {
-        margin: 6px 0 0;
-        color: #7b8494;
-        font-size: 15px;
-    }
-    /* =========================================
-       BACK TO SALES
-    ========================================= */
-    .back-sales-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        min-height: 42px;
-        padding: 0 15px;
-        border: 1px solid #d9e0e9;
-        border-radius: 9px;
-        background: #ffffff;
-        color: #4b5563;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-    .back-sales-link:hover {
-        background: #f5f8fc;
-        border-color: #c8d2e0;
-        color: #2563eb;
-    }
-    .back-sales-icon {
-        width: 27px;
-        height: 27px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 7px;
-        background: #f1f5f9;
-        color: #64748b;
-        font-size: 13px;
-    }
-    .back-sales-link:hover .back-sales-icon {
-        background: #eef4ff;
-        color: #2563eb;
-    }
-    /* =========================================
-       MAIN CARD
-    ========================================= */
-    .sale-card {
-        background: #ffffff;
-        border: 1px solid #e4e9f0;
-        border-radius: 16px;
-        box-shadow: 0 4px 18px rgba(31, 41, 55, 0.055);
-        margin-bottom: 22px;
-        overflow: hidden;
-    }
-    .sale-card-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid #edf0f4;
-        background: #ffffff;
-    }
-    .sale-card-title {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 700;
-        color: #202938;
-    }
-    .sale-card-subtitle {
-        margin-top: 5px;
-        font-size: 13px;
-        color: #8b94a3;
-    }
-    .sale-card-body {
-        padding: 24px;
-    }
-    /* =========================================
-       FORM
-    ========================================= */
-    .form-label-custom {
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-        color: #3f4856;
-        margin-bottom: 8px;
-    }
-    .form-control,
-    .form-select {
-        min-height: 48px;
-        border: 1px solid #dce2ea;
-        border-radius: 9px;
-        font-size: 14px;
-        color: #303846;
-        padding-left: 14px;
-        padding-right: 14px;
-    }
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #80aaff;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-    }
-    .helper-text {
-        font-size: 12px;
-        color: #9299a6;
-        margin-top: 7px;
-    }
-    /* =========================================
-       PRODUCT ADD AREA
-    ========================================= */
-    .product-add-area {
-        background: #f7f9fd;
-        border: 1px solid #e4e9f2;
-        border-radius: 12px;
-        padding: 22px;
-    }
-    /*
-       Keep Product, Quantity and Add Product
-       aligned at the same top level.
-    */
-    .product-add-area .form-label-custom {
-        min-height: 19px;
-    }
-    .product-add-area .form-control,
-    .product-add-area .form-select {
-        height: 48px;
-        min-height: 48px;
-    }
-    .product-add-area .add-product-btn {
-        height: 48px;
-        min-height: 48px;
-    }
-    .product-stock-info {
+
+    .product-add-column { padding-top: 0; }
+
+    .product-grid .sale-label {
+        height: auto;
         min-height: 18px;
-        font-size: 12px;
-        color: #8c95a3;
-        margin-top: 7px;
     }
-    .add-product-btn {
-        border-radius: 9px;
-        font-size: 14px;
-        font-weight: 700;
-    }
-    /* =========================================
-       INVOICE TABLE
-    ========================================= */
-    .invoice-table {
-        margin: 0;
-    }
-    .invoice-table thead th {
-        background: #f7f8fa;
-        border-bottom: 1px solid #e3e7ed;
-        color: #687181;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.45px;
-        padding: 15px 20px;
-        white-space: nowrap;
-    }
+
+    .sale-card-body { padding: 12px; }
+    .sale-card-header { padding: 11px 12px; }
+
+    .invoice-table thead th,
     .invoice-table tbody td {
-        padding: 18px 20px;
-        border-bottom: 1px solid #edf0f3;
-        font-size: 14px;
-        color: #303846;
-        vertical-align: middle;
+        padding: 9px 8px;
     }
-    .invoice-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .invoice-table tbody tr:hover {
-        background: #fafbfe;
-    }
-    .product-name {
-        font-size: 14px;
-        font-weight: 700;
-        color: #303846;
-    }
-    .product-sku {
-        font-size: 11px;
-        color: #9299a6;
-        margin-top: 4px;
-    }
-    .product-price {
-        font-size: 14px;
-        font-weight: 600;
-        color: #4b5563;
-    }
-    .line-total {
-        font-size: 14px;
-        font-weight: 700;
-        color: #202938;
-    }
-    .quantity-input {
-        width: 90px;
-        min-height: 40px;
-        text-align: center;
-        margin: auto;
-    }
-    .remove-product-btn {
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-    /* =========================================
-       EMPTY CART
-    ========================================= */
-    .empty-cart {
-        padding: 70px 20px;
-        text-align: center;
-        background: #fafbfc;
-    }
-    .empty-cart-icon {
-        width: 76px;
-        height: 76px;
-        border-radius: 50%;
-        background: #eef2f7;
-        color: #8993a3;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 31px;
-        margin-bottom: 18px;
-    }
-    .empty-cart h6 {
-        font-size: 16px;
-        font-weight: 700;
-        color: #3f4856;
-        margin-bottom: 7px;
-    }
-    .empty-cart p {
-        color: #9299a6;
-        font-size: 13px;
-        margin: 0;
-    }
-    /* =========================================
-       DISCOUNT / TAX
-    ========================================= */
-    .discount-toggle {
-        display: flex;
-        border: 1px solid #d9e0e9;
-        border-radius: 9px;
-        overflow: hidden;
-        margin-bottom: 20px;
-    }
-    .discount-toggle label {
-        flex: 1;
-        margin: 0;
-        cursor: pointer;
-    }
-    .discount-toggle input {
-        display: none;
-    }
-    .discount-toggle span {
-        min-height: 46px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 700;
-        color: #2563eb;
-        background: #ffffff;
-    }
-    .discount-toggle input:checked + span {
-        background: #2563eb;
-        color: #ffffff;
-    }
-    /* =========================================
-       SUMMARY
-    ========================================= */
-    .summary-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 0;
-        font-size: 14px;
-        color: #697281;
-    }
-    .summary-row strong {
-        color: #303846;
-        font-size: 14px;
-    }
-    .discount-value {
-        color: #dc3545 !important;
-    }
-    .summary-divider {
-        border-top: 1px solid #dfe4eb;
-        margin: 12px 0;
-    }
-    .grand-total-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 12px;
-    }
-    .grand-total-label {
-        font-size: 19px;
-        font-weight: 700;
-        color: #202938;
-    }
-    .grand-total-value {
-        font-size: 28px;
-        font-weight: 800;
-        color: #2563eb;
-    }
-    .create-invoice-btn {
-        width: 100%;
-        min-height: 54px;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 700;
-        margin-top: 22px;
-    }
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
-    @media (max-width: 991px) {
-        .sale-page-header {
-            align-items: flex-start;
-        }
-        .sale-card-body {
-            padding: 20px;
-        }
-    }
-    @media (max-width: 767px) {
-        .sale-page-header {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .sale-page-header > a {
-            width: fit-content;
-        }
-        .back-sales-link {
-            width: fit-content;
-        }
-        .sale-page-header h2 {
-            font-size: 25px;
-        }
-        .sale-card-header {
-            padding: 18px;
-        }
-        .sale-card-body {
-            padding: 18px;
-        }
-        .product-add-area {
-            padding: 16px;
-        }
-        .invoice-table thead th,
-        .invoice-table tbody td {
-            padding: 13px 14px;
-        }
-    }
+
+    .grand-total-value { font-size: 22px; }
+}
 </style>
-<div class="sale-page">
-    <!-- ================================================= -->
-    <!-- PAGE HEADER -->
-    <!-- ================================================= -->
-    <div class="sale-page-header">
-        <div class="sale-page-header-left">
-            <div class="sale-page-icon">
-                <i class="bi bi-receipt-cutoff"></i>
-            </div>
-            <div>
-                <h2>
-                    {% if edit_mode %}Edit Invoice #{{ sale.invoice_number }}{% else %}New Sale{% endif %}
-                </h2>
-                <p>
-                    {% if edit_mode %}Update the invoice details and product quantities. Stock will be adjusted automatically.{% else %}Create a new invoice and update stock automatically.{% endif %}
-                </p>
-            </div>
+
+<div class="container-fluid sale-page">
+
+    <div class="sale-topbar">
+        <div>
+            <h2 class="sale-heading">
+                {% if edit_mode %}
+                    Edit Invoice #{{ sale.invoice_number }}
+                {% else %}
+                    New Sale
+                {% endif %}
+            </h2>
+            <p class="sale-description">
+                Create a customer invoice and manage stock by size.
+            </p>
         </div>
-        <a href="{% url 'sale_list' %}" class="back-sales-link">
-            <span class="back-sales-icon">
-                <i class="bi bi-arrow-left"></i>
-            </span>
-            <span>Back to Sales</span>
+
+        <a href="{% url 'sale_list' %}" class="btn btn-outline-secondary">
+            ← Back to Sales
         </a>
     </div>
-    <!-- ================================================= -->
-    <!-- FORM -->
-    <!-- ================================================= -->
-    <form method="post" id="saleForm">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if edit_mode %}
+        <div class="alert alert-warning py-2">
+            Size-wise invoice editing is not enabled yet. Use this page to create new invoices only.
+        </div>
+    {% endif %}
+
+    <form method="post" id="saleForm"
+          data-edit-mode="{% if edit_mode %}true{% else %}false{% endif %}">
         {% csrf_token %}
-        <!-- ================================================= -->
-        <!-- SALE INFORMATION -->
-        <!-- ================================================= -->
-        <div class="sale-card">
+
+        <!-- Customer and payment -->
+        <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Sale Information</h5>
-                <div class="sale-card-subtitle">
-                    Select the customer and payment method for this invoice.
-                </div>
+                <span class="section-count">Customer & payment</span>
             </div>
+
             <div class="sale-card-body">
-                <div class="row g-4">
-                    <!-- CUSTOMER -->
-                    <div class="col-12 col-lg-8">
-                        <label for="customer" class="form-label-custom">Customer</label>
+                <div class="sale-info-grid">
+                    <div>
+                        <label class="sale-label" for="customer">Customer</label>
                         <select name="customer" id="customer" class="form-select">
-                            <option value="" {% if edit_mode and not sale.customer_id %}selected{% endif %}>
-                                Walk-in Customer
-                            </option>
+                            <option value="">Walk-in Customer</option>
                             {% for customer in customers %}
-                                <option value="{{ customer.id }}" {% if edit_mode and sale.customer_id == customer.id %}selected{% endif %}>
-                                    {{ customer.name }} — {{ customer.phone }}
+                                <option value="{{ customer.id }}"
+                                    {% if edit_mode and sale.customer_id == customer.id %}selected{% endif %}>
+                                    {{ customer.name }}{% if customer.phone %} — {{ customer.phone }}{% endif %}
                                 </option>
                             {% endfor %}
                         </select>
-                        <div class="helper-text">
-                            Select a registered customer or keep Walk-in Customer for an anonymous sale.
-                        </div>
                     </div>
-                    <!-- PAYMENT -->
-                    <div class="col-12 col-lg-4">
-                        <label for="payment_method" class="form-label-custom">Payment Method</label>
+
+                    <div>
+                        <label class="sale-label" for="payment_method">Payment Method</label>
                         <select name="payment_method" id="payment_method" class="form-select">
-                            <option value="CASH" {% if edit_mode and sale.payment_method == "CASH" %}selected{% endif %}>Cash</option>
-                            <option value="CARD" {% if edit_mode and sale.payment_method == "CARD" %}selected{% endif %}>Card</option>
-                            <option value="UPI" {% if edit_mode and sale.payment_method == "UPI" %}selected{% endif %}>UPI</option>
-                            <option value="OTHER" {% if edit_mode and sale.payment_method == "OTHER" %}selected{% endif %}>Other</option>
+                            <option value="CASH" {% if not edit_mode or sale.payment_method == 'CASH' %}selected{% endif %}>Cash</option>
+                            <option value="CARD" {% if edit_mode and sale.payment_method == 'CARD' %}selected{% endif %}>Card</option>
+                            <option value="UPI" {% if edit_mode and sale.payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                            <option value="OTHER" {% if edit_mode and sale.payment_method == 'OTHER' %}selected{% endif %}>Other</option>
                         </select>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- ================================================= -->
-        <!-- ADD PRODUCTS -->
-        <!-- ================================================= -->
-        <div class="sale-card">
+        </section>
+
+        <!-- Product selection -->
+        <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Add Products</h5>
-                <div class="sale-card-subtitle">
-                    Select products and quantities to add them to this invoice.
-                </div>
+                <span class="section-count">Select product, size & quantity</span>
             </div>
+
             <div class="sale-card-body">
                 <div class="product-add-area">
-                    <!-- Product / Quantity / Button aligned -->
-                    <div class="row g-4 align-items-start">
-                        <!-- PRODUCT -->
-                        <div class="col-12 col-lg-7">
-                            <label for="productSelect" class="form-label-custom">Product</label>
+                    <div class="product-grid">
+
+                        <div>
+                            <label class="sale-label" for="productSelect">Product</label>
                             <select id="productSelect" class="form-select">
                                 <option value="">Select Product</option>
                                 {% for product in products %}
                                     <option
                                         value="{{ product.id }}"
                                         data-price="{{ product.price }}"
-                                        data-stock="{{ product.stock }}"
                                         data-sku="{{ product.sku }}"
-                                    >
+                                        data-sizes='[{% for size in product.sizes.all %}{% if not forloop.first %},{% endif %}{"id":"{{ size.id }}","size":"{{ size.size }}","stock":{{ size.stock }}}{% endfor %}]'>
                                         {{ product.name }} — ₹{{ product.price|floatformat:2 }} — Stock: {{ product.stock }}
                                     </option>
                                 {% endfor %}
                             </select>
-                            <div id="productStockInfo" class="product-stock-info">
+                            <div id="productStockInfo" class="stock-info">
                                 Select a product to see available stock.
                             </div>
                         </div>
-                        <!-- QUANTITY -->
-                        <div class="col-12 col-md-4 col-lg-2">
-                            <label for="quantityInput" class="form-label-custom">Quantity</label>
-                            <input type="number" id="quantityInput" class="form-control" value="1" min="1">
+
+                        <div>
+                            <label class="sale-label" for="sizeSelect">Size</label>
+                            <select id="sizeSelect" class="form-select" disabled>
+                                <option value="">Select size</option>
+                            </select>
+                            <div id="sizeStockInfo" class="stock-info">
+                                Choose a product first.
+                            </div>
                         </div>
-                        <!-- ADD PRODUCT -->
-                        <div class="col-12 col-md-8 col-lg-3">
-                            <label class="form-label-custom invisible">Add Product</label>
-                            <button type="button" id="addProductBtn" class="btn btn-primary add-product-btn w-100">
-                                <i class="bi bi-plus-lg me-1"></i>
-                                Add Product
+
+                        <div>
+                            <label class="sale-label" for="quantityInput">Quantity</label>
+                            <input type="number" id="quantityInput"
+                                   class="form-control" value="1" min="1">
+                        </div>
+
+                        <!-- No extra label here: it caused the button to sit lower -->
+                        <div class="product-add-column">
+                            <button type="button" id="addProductBtn"
+                                    class="btn btn-primary add-product-btn">
+                                + Add Product
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>
-        </div>
-                <!-- ================================================= -->
-        <!-- INVOICE PRODUCTS -->
-        <!-- ================================================= -->
-        <div class="sale-card">
+        </section>
+
+        <!-- Invoice cart -->
+        <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Products in Invoice</h5>
-                <div class="sale-card-subtitle">
-                    Review products and quantities before saving the invoice.
-                </div>
+                <span id="cartCount" class="section-count">0 items</span>
             </div>
 
             <div class="table-responsive">
-                <table class="table invoice-table align-middle mb-0">
+                <table class="table invoice-table">
                     <thead>
                         <tr>
                             <th>Product</th>
                             <th>SKU</th>
+                            <th>Size</th>
                             <th class="text-end">Price</th>
-                            <th class="text-center">Quantity</th>
+                            <th class="text-center">Qty</th>
                             <th class="text-end">Total</th>
                             <th class="text-center">Action</th>
                         </tr>
@@ -549,251 +544,191 @@
                 </table>
 
                 <div id="emptyCart" class="empty-cart">
-                    <div class="empty-cart-icon">
-                        <i class="bi bi-cart3"></i>
-                    </div>
-                    <h6>No products added yet</h6>
-                    <p>Select a product above and click Add Product.</p>
+                    No products added yet. Select a product and size above.
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- ================================================= -->
-        <!-- DISCOUNT AND SUMMARY -->
-        <!-- ================================================= -->
-        <div class="row g-4">
-            <div class="col-12 col-lg-7">
-                <div class="sale-card h-100">
-                    <div class="sale-card-header">
-                        <h5 class="sale-card-title">Discount &amp; Tax</h5>
-                        <div class="sale-card-subtitle">
-                            Apply a discount and add tax to the invoice.
-                        </div>
-                    </div>
-
-                    <div class="sale-card-body">
-                        <label class="form-label-custom">Discount Type</label>
-
-                        <div class="discount-toggle">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="discount_type"
-                                    value="PERCENTAGE"
-                                    {% if not edit_mode or sale.discount_type == "PERCENTAGE" %}checked{% endif %}
-                                >
-                                <span>Percentage (%)</span>
-                            </label>
-
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="discount_type"
-                                    value="AMOUNT"
-                                    {% if edit_mode and sale.discount_type == "AMOUNT" %}checked{% endif %}
-                                >
-                                <span>Fixed Amount (₹)</span>
-                            </label>
-                        </div>
-
-                        <div class="row g-4">
-                            <div class="col-12 col-md-6">
-                                <label for="discount" class="form-label-custom">
-                                    Discount
-                                </label>
-                                <input
-                                    type="number"
-                                    name="discount"
-                                    id="discount"
-                                    class="form-control"
-                                    value="{% if edit_mode %}{{ sale.discount }}{% else %}0{% endif %}"
-                                    min="0"
-                                    step="0.01"
-                                >
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <label for="tax" class="form-label-custom">
-                                    Tax Amount
-                                </label>
-                                <input
-                                    type="number"
-                                    name="tax"
-                                    id="tax"
-                                    class="form-control"
-                                    value="{% if edit_mode %}{{ sale.tax }}{% else %}0{% endif %}"
-                                    min="0"
-                                    step="0.01"
-                                >
-                            </div>
-                        </div>
-                    </div>
+        <!-- Discount and summary -->
+        <div class="billing-grid">
+            <section class="sale-card mb-0">
+                <div class="sale-card-header">
+                    <h5 class="sale-card-title">Discount & Tax</h5>
                 </div>
-            </div>
 
-            <div class="col-12 col-lg-5">
-                <div class="sale-card h-100">
-                    <div class="sale-card-header">
-                        <h5 class="sale-card-title">Invoice Summary</h5>
-                        <div class="sale-card-subtitle">
-                            Review the final invoice amount.
-                        </div>
-                    </div>
+                <div class="sale-card-body">
+                    <label class="sale-label">Discount Type</label>
 
-                    <div class="sale-card-body">
-                        <div class="summary-row">
-                            <span>Subtotal</span>
-                            <strong id="subtotalDisplay">₹0.00</strong>
-                        </div>
-
-                        <div class="summary-row">
-                            <span>Discount</span>
-                            <strong id="discountDisplay" class="discount-value">
-                                -₹0.00
-                            </strong>
-                        </div>
-
-                        <div class="summary-row">
-                            <span>Tax</span>
-                            <strong id="taxDisplay">₹0.00</strong>
-                        </div>
-
-                        <div class="summary-divider"></div>
-
-                        <div class="grand-total-row">
-                            <span class="grand-total-label">Grand Total</span>
-                            <span class="grand-total-value" id="grandTotalDisplay">
-                                ₹0.00
+                    <div class="discount-toggle">
+                        <label>
+                            <span>
+                                <input type="radio" name="discount_type"
+                                       value="PERCENTAGE" checked>
+                                Percentage (%)
                             </span>
+                        </label>
+
+                        <label>
+                            <span>
+                                <input type="radio" name="discount_type"
+                                       value="AMOUNT">
+                                Fixed Amount (₹)
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="sale-label" for="discount" id="discountLabel">
+                                Discount (%)
+                            </label>
+                            <input type="number" name="discount" id="discount"
+                                   class="form-control" value="0"
+                                   min="0" step="0.01">
                         </div>
 
-                        <button
-                            type="submit"
-                            class="btn btn-success create-invoice-btn"
-                            id="createInvoiceBtn"
-                        >
-                            <i class="bi bi-check-circle me-2"></i>
-                            {% if edit_mode %}Update Invoice{% else %}Create Invoice{% endif %}
-                        </button>
+                        <div class="col-md-6">
+                            <label class="sale-label" for="tax">Tax Amount (₹)</label>
+                            <input type="number" name="tax" id="tax"
+                                   class="form-control" value="0"
+                                   min="0" step="0.01">
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <section class="sale-card summary-card mb-0">
+                <div class="sale-card-header">
+                    <h5 class="sale-card-title">Invoice Summary</h5>
+                </div>
+
+                <div class="sale-card-body">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <strong id="subtotalDisplay">₹0.00</strong>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Discount</span>
+                        <strong id="discountDisplay">-₹0.00</strong>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Tax</span>
+                        <strong id="taxDisplay">₹0.00</strong>
+                    </div>
+
+                    <hr class="summary-divider">
+
+                    <div class="grand-total-row">
+                        <span class="grand-total-label">Grand Total</span>
+                        <strong class="grand-total-value" id="grandTotalDisplay">₹0.00</strong>
+                    </div>
+
+                    <button type="submit" id="createInvoiceBtn"
+                            class="btn btn-primary create-btn">
+                        Create Invoice
+                    </button>
+                </div>
+            </section>
         </div>
 
-        <!-- HIDDEN CART INPUTS -->
         <div id="hiddenCartInputs"></div>
     </form>
-
-    <div class="text-center text-muted py-4">
-        <small>BusinessFlow Billing System</small>
-    </div>
 </div>
+
 <script>
 (function () {
     "use strict";
 
-    const editMode = "{{ edit_mode|yesno:'true,false' }}" === "true";
-    const initialCart = JSON.parse('{{ initial_cart|default:"[]"|escapejs }}');
-
+    const $ = (id) => document.getElementById(id);
+    const form = $("saleForm");
+    const productSelect = $("productSelect");
+    const sizeSelect = $("sizeSelect");
+    const quantityInput = $("quantityInput");
     const cart = [];
-    const productSelect = document.getElementById("productSelect");
-    const quantityInput = document.getElementById("quantityInput");
-    const addProductBtn = document.getElementById("addProductBtn");
-    const invoiceItems = document.getElementById("invoiceItems");
-    const emptyCart = document.getElementById("emptyCart");
-    const productStockInfo = document.getElementById("productStockInfo");
-    const discountInput = document.getElementById("discount");
-    const taxInput = document.getElementById("tax");
-    const subtotalDisplay = document.getElementById("subtotalDisplay");
-    const discountDisplay = document.getElementById("discountDisplay");
-    const taxDisplay = document.getElementById("taxDisplay");
-    const grandTotalDisplay = document.getElementById("grandTotalDisplay");
-    const hiddenCartInputs = document.getElementById("hiddenCartInputs");
-    const saleForm = document.getElementById("saleForm");
+    const editMode = form.dataset.editMode === "true";
 
-    function formatCurrency(value) {
-        return "₹" + Number(value || 0).toFixed(2);
-    }
+    const money = (value) => "₹" + Number(value || 0).toFixed(2);
 
-    function escapeHtml(value) {
-        return String(value ?? "").replace(/[&<>"']/g, function (character) {
+    const safe = (value) =>
+        String(value ?? "").replace(/[&<>"']/g, function (character) {
             return {
                 "&": "&amp;",
                 "<": "&lt;",
                 ">": "&gt;",
                 '"': "&quot;",
-                "'": "&#039;"
+                "'": "&#39;"
             }[character];
         });
+
+    function selectedOption() {
+        return productSelect.options[productSelect.selectedIndex];
     }
 
-    function getDiscountType() {
-        const selected = document.querySelector(
-            'input[name="discount_type"]:checked'
+    function sizesForProduct() {
+        try {
+            return JSON.parse(selectedOption().dataset.sizes || "[]");
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function updateSizeOptions() {
+        const sizes = sizesForProduct();
+
+        sizeSelect.innerHTML = '<option value="">Select size</option>';
+
+        sizes.forEach(function (size) {
+            const option = document.createElement("option");
+            option.value = size.id;
+            option.dataset.stock = size.stock;
+            option.textContent = size.size + " — Stock: " + size.stock;
+            option.disabled = Number(size.stock) <= 0;
+            sizeSelect.appendChild(option);
+        });
+
+        sizeSelect.disabled = !productSelect.value || sizes.length === 0;
+
+        const totalStock = sizes.reduce(
+            (total, size) => total + Number(size.stock), 0
         );
-        return selected ? selected.value : "PERCENTAGE";
+
+        $("productStockInfo").textContent = productSelect.value
+            ? "Total stock: " + totalStock
+            : "Select a product to see available stock.";
+
+        $("sizeStockInfo").textContent = sizes.length
+            ? "Select a size to see available stock."
+            : "No size stock configured for this product.";
+
+        quantityInput.value = 1;
+        quantityInput.removeAttribute("max");
+        sizeSelect.value = "";
     }
 
-    /*
-     * During editing, make the original quantity available for this invoice.
-     * The backend must still validate stock when the form is submitted.
-     */
-    if (editMode && Array.isArray(initialCart)) {
-        const initialByProduct = new Map();
+    productSelect.addEventListener("change", updateSizeOptions);
 
-        initialCart.forEach(function (item) {
-            const id = String(item.product_id);
-            const existing = initialByProduct.get(id);
+    sizeSelect.addEventListener("change", function () {
+        const option = sizeSelect.options[sizeSelect.selectedIndex];
 
-            if (existing) {
-                existing.quantity += Number(item.quantity);
-                existing.stock = Math.max(
-                    existing.stock,
-                    Number(item.stock)
-                );
-            } else {
-                initialByProduct.set(id, {
-                    productId: id,
-                    productName: item.name,
-                    sku: item.sku || "",
-                    price: Number(item.price),
-                    stock: Number(item.stock),
-                    quantity: Number(item.quantity)
-                });
-            }
-        });
-
-        initialByProduct.forEach(function (item) {
-            cart.push(item);
-
-            const option = Array.from(productSelect.options).find(
-                function (option) {
-                    return option.value === item.productId;
-                }
-            );
-
-            if (option) {
-                option.dataset.stock = String(item.stock);
-            }
-        });
-    }
-
-    productSelect.addEventListener("change", function () {
-        const option = productSelect.options[productSelect.selectedIndex];
-
-        if (!productSelect.value || !option) {
-            productStockInfo.textContent =
-                "Select a product to see available stock.";
+        if (!sizeSelect.value) {
+            $("sizeStockInfo").textContent = "Select a size.";
+            quantityInput.removeAttribute("max");
             return;
         }
 
-        productStockInfo.textContent =
-            "SKU: " + (option.dataset.sku || "—") +
-            " • Available stock: " + Number(option.dataset.stock || 0);
+        const sizeName = option.textContent.split(" — ")[0];
+
+        $("sizeStockInfo").textContent =
+            "Available stock for " + sizeName + ": " + option.dataset.stock;
+
+        quantityInput.max = option.dataset.stock;
     });
 
-    addProductBtn.addEventListener("click", function () {
+    $("addProductBtn").addEventListener("click", function () {
         const productId = productSelect.value;
+        const sizeId = sizeSelect.value;
         const quantity = Number(quantityInput.value);
 
         if (!productId) {
@@ -801,142 +736,152 @@
             return;
         }
 
+        if (!sizeId) {
+            alert("Please select a size.");
+            return;
+        }
+
         if (!Number.isInteger(quantity) || quantity < 1) {
             alert("Quantity must be at least 1.");
             return;
         }
 
-        const option = productSelect.options[productSelect.selectedIndex];
-        const productName = option.textContent.split("—")[0].trim();
-        const price = Number(option.dataset.price || 0);
-        const stock = Number(option.dataset.stock || 0);
-        const sku = option.dataset.sku || "";
+        const productOption = selectedOption();
+        const sizeOption = sizeSelect.options[sizeSelect.selectedIndex];
+        const stock = Number(sizeOption.dataset.stock || 0);
+        const sizeName = sizeOption.textContent.split(" — ")[0];
 
         const existing = cart.find(function (item) {
-            return item.productId === productId;
+            return item.productId === productId && item.sizeId === sizeId;
         });
 
-        const newQuantity = quantity + (existing ? existing.quantity : 0);
+        const combinedQuantity = quantity + (existing ? existing.quantity : 0);
 
-        if (newQuantity > stock) {
-            alert("Only " + stock + " unit(s) are available in stock.");
+        if (combinedQuantity > stock) {
+            alert("Only " + stock + " piece(s) available for size " + sizeName + ".");
             return;
         }
 
         if (existing) {
-            existing.quantity = newQuantity;
+            existing.quantity = combinedQuantity;
         } else {
             cart.push({
                 productId: productId,
-                productName: productName,
-                sku: sku,
-                price: price,
+                sizeId: sizeId,
+                productName: productOption.textContent.split(" — ")[0].trim(),
+                sku: productOption.dataset.sku || "",
+                sizeName: sizeName,
+                price: Number(productOption.dataset.price || 0),
                 stock: stock,
                 quantity: quantity
             });
         }
 
-        productSelect.value = "";
-        quantityInput.value = "1";
-        productStockInfo.textContent =
-            "Select a product to see available stock.";
-
-        renderCart();
+        quantityInput.value = 1;
+        render();
     });
 
-    function renderCart() {
-        invoiceItems.innerHTML = "";
-        hiddenCartInputs.innerHTML = "";
+    function render() {
+        $("invoiceItems").innerHTML = "";
+        $("hiddenCartInputs").innerHTML = "";
 
         cart.forEach(function (item, index) {
             const row = document.createElement("tr");
-            const total = item.price * item.quantity;
 
-            row.innerHTML = `
-                <td><div class="product-name">${escapeHtml(item.productName)}</div></td>
-                <td><div class="product-sku">${escapeHtml(item.sku)}</div></td>
-                <td class="text-end">
-                    <span class="product-price">${formatCurrency(item.price)}</span>
-                </td>
-                <td class="text-center">
-                    <input
-                        type="number"
-                        class="form-control quantity-input"
-                        min="1"
-                        max="${Number(item.stock)}"
-                        value="${Number(item.quantity)}"
-                        aria-label="Quantity for ${escapeHtml(item.productName)}"
-                        data-cart-index="${index}"
-                    >
-                </td>
-                <td class="text-end">
-                    <span class="line-total">${formatCurrency(total)}</span>
-                </td>
-                <td class="text-center">
-                    <button
-                        type="button"
-                        class="btn btn-outline-danger remove-product-btn"
-                        data-remove-index="${index}"
-                        title="Remove Product"
-                        aria-label="Remove ${escapeHtml(item.productName)}"
-                    >
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            `;
+            row.innerHTML =
+                '<td><span class="product-name">' + safe(item.productName) + '</span></td>' +
+                '<td><span class="product-sku">' + safe(item.sku) + '</span></td>' +
+                '<td><span class="size-badge">' + safe(item.sizeName) + '</span></td>' +
+                '<td class="text-end">' + money(item.price) + '</td>' +
+                '<td class="text-center">' +
+                    '<input type="number" class="form-control quantity-input" ' +
+                    'min="1" max="' + item.stock + '" value="' + item.quantity + '" ' +
+                    'data-index="' + index + '" aria-label="Quantity">' +
+                '</td>' +
+                '<td class="text-end fw-bold">' +
+                    money(item.price * item.quantity) +
+                '</td>' +
+                '<td class="text-center">' +
+                    '<button type="button" class="btn btn-outline-danger btn-sm" ' +
+                    'data-remove="' + index + '">Remove</button>' +
+                '</td>';
 
-            invoiceItems.appendChild(row);
+            $("invoiceItems").appendChild(row);
 
-            const productInput = document.createElement("input");
-            productInput.type = "hidden";
-            productInput.name = "product_ids";
-            productInput.value = item.productId;
-            hiddenCartInputs.appendChild(productInput);
-
-            const quantityHidden = document.createElement("input");
-            quantityHidden.type = "hidden";
-            quantityHidden.name = "quantities";
-            quantityHidden.value = item.quantity;
-            hiddenCartInputs.appendChild(quantityHidden);
+            [
+                ["product_ids", item.productId],
+                ["product_size_ids", item.sizeId],
+                ["quantities", item.quantity]
+            ].forEach(function (field) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = field[0];
+                input.value = field[1];
+                $("hiddenCartInputs").appendChild(input);
+            });
         });
 
-        emptyCart.style.display = cart.length ? "none" : "block";
+        $("emptyCart").style.display = cart.length ? "none" : "block";
+        $("cartCount").textContent =
+            cart.length + (cart.length === 1 ? " item" : " items");
+
         updateSummary();
     }
 
-    invoiceItems.addEventListener("change", function (event) {
-        const input = event.target.closest("[data-cart-index]");
-        if (!input) return;
+    $("invoiceItems").addEventListener("change", function (event) {
+        const index = event.target.dataset.index;
 
-        const index = Number(input.dataset.cartIndex);
-        const quantity = Number(input.value);
-        const item = cart[index];
+        if (index === undefined) return;
 
-        if (!item) return;
+        const item = cart[Number(index)];
+        const quantity = Number(event.target.value);
 
-        if (!Number.isInteger(quantity) || quantity < 1) {
-            alert("Quantity must be at least 1.");
-            renderCart();
-            return;
-        }
-
-        if (quantity > item.stock) {
-            alert("Only " + item.stock + " unit(s) are available in stock.");
-            renderCart();
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > item.stock) {
+            alert("Quantity must be between 1 and " + item.stock + ".");
+            render();
             return;
         }
 
         item.quantity = quantity;
-        renderCart();
+        render();
     });
 
-    invoiceItems.addEventListener("click", function (event) {
-        const button = event.target.closest("[data-remove-index]");
-        if (!button) return;
+    $("invoiceItems").addEventListener("click", function (event) {
+        const index = event.target.dataset.remove;
 
-        cart.splice(Number(button.dataset.removeIndex), 1);
-        renderCart();
+        if (index !== undefined) {
+            cart.splice(Number(index), 1);
+            render();
+        }
     });
+
+    function updateSummary() {
+        const subtotal = cart.reduce(
+            (total, item) => total + item.price * item.quantity, 0
+        );
+
+        const discountType = document.querySelector(
+            'input[name="discount_type"]:checked'
+        ).value;
+
+        const rawDiscount = Math.max(0, Number($("discount").value) || 0);
+        const tax = Math.max(0, Number($("tax").value) || 0);
+
+        const discount = discountType === "PERCENTAGE"
+            ? subtotal * Math.min(100, rawDiscount) / 100
+            : Math.min(subtotal, rawDiscount);
+
+        const grandTotal = Math.max(0, subtotal - discount) + tax;
+
+        $("subtotalDisplay").textContent = money(subtotal);
+        $("discountDisplay").textContent = "-" + money(discount);
+        $("taxDisplay").textContent = money(tax);
+        $("grandTotalDisplay").textContent = money(grandTotal);
+
+        $("discountLabel").textContent = discountType === "PERCENTAGE"
+            ? "Discount (%)"
+            : "Discount Amount (₹)";
+    }
 
     document.querySelectorAll('input[name="discount_type"]').forEach(
         function (radio) {
@@ -944,78 +889,30 @@
         }
     );
 
-    discountInput.addEventListener("input", updateSummary);
-    taxInput.addEventListener("input", updateSummary);
-        function updateSummary() {
-        const subtotal = cart.reduce(function (total, item) {
-            return total + (item.price * item.quantity);
-        }, 0);
+    $("discount").addEventListener("input", updateSummary);
+    $("tax").addEventListener("input", updateSummary);
 
-        let discount = Number(discountInput.value) || 0;
-        const discountType = getDiscountType();
-        let discountAmount = 0;
-
-        if (discountType === "PERCENTAGE") {
-            discount = Math.max(0, Math.min(100, discount));
-            discountAmount = subtotal * discount / 100;
-        } else {
-            discount = Math.max(0, Math.min(subtotal, discount));
-            discountAmount = discount;
-        }
-
-        const tax = Math.max(0, Number(taxInput.value) || 0);
-        const grandTotal = Math.max(0, subtotal - discountAmount) + tax;
-
-        subtotalDisplay.textContent = formatCurrency(subtotal);
-        discountDisplay.textContent = "-" + formatCurrency(discountAmount);
-        taxDisplay.textContent = formatCurrency(tax);
-        grandTotalDisplay.textContent = formatCurrency(grandTotal);
-    }
-
-    saleForm.addEventListener("submit", function (event) {
-        if (cart.length === 0) {
+    form.addEventListener("submit", function (event) {
+        if (editMode) {
             event.preventDefault();
-            alert("Please add at least one product before saving the invoice.");
+            alert("Size-wise invoice editing is not enabled yet.");
             return;
         }
 
-        const discount = Number(discountInput.value) || 0;
-        const tax = Number(taxInput.value) || 0;
-        const discountType = getDiscountType();
-
-        const subtotal = cart.reduce(function (total, item) {
-            return total + (item.price * item.quantity);
-        }, 0);
-
-        if (discount < 0 || !Number.isFinite(discount)) {
+        if (!cart.length) {
             event.preventDefault();
-            alert("Discount cannot be negative.");
+            alert("Please add at least one product.");
             return;
         }
 
-        if (discountType === "PERCENTAGE" && discount > 100) {
+        if (cart.some(item => item.quantity < 1 || item.quantity > item.stock)) {
             event.preventDefault();
-            alert("Percentage discount cannot be more than 100%.");
-            return;
-        }
-
-        if (discountType === "AMOUNT" && discount > subtotal) {
-            event.preventDefault();
-            alert("Fixed discount cannot be greater than the subtotal.");
-            return;
-        }
-
-        if (tax < 0 || !Number.isFinite(tax)) {
-            event.preventDefault();
-            alert("Tax cannot be negative.");
-            return;
+            alert("Please check the quantities in your invoice.");
         }
     });
 
-    renderCart();
-    updateSummary();
-}
-)
-();
+    render();
+    updateSizeOptions();
+})();
 </script>
 {% endblock %}

@@ -1,938 +1,544 @@
 {% extends "base.html" %}
 
-
-{% block title %}
-    Sales | BusinessFlow
-{% endblock %}
-
-
-{% block page_title %}
-    Sales
-{% endblock %}
-
+{% block title %}Sales | Ananta Aura{% endblock %}
+{% block page_title %}Sales{% endblock %}
 
 {% block content %}
-
 <style>
+.sales-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 12px 16px 24px;
+    color: #172b4d;
+    font-size: 13px;
+}
 
-    /* =====================================================
-       SALES PAGE
-    ===================================================== */
+.sales-header-card,
+.sales-table-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, .04);
+    overflow: hidden;
+}
 
+.sales-header-card {
+    padding: 22px 24px;
+    margin-bottom: 18px;
+}
+
+.sales-header-title {
+    margin: 0 0 5px;
+    font-size: 24px;
+    font-weight: 750;
+    color: #172b4d;
+}
+
+.sales-header-subtitle,
+.sales-table-subtitle {
+    margin: 0;
+    color: #7b8ba4;
+    font-size: 13px;
+}
+
+.sales-table-header {
+    padding: 17px 21px;
+    border-bottom: 1px solid #e8edf5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.sales-table-title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 750;
+    color: #172b4d;
+}
+
+.sales-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.sales-table {
+    min-width: 1150px;
+    width: 100%;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sales-table thead th {
+    background: #f5f8fd;
+    color: #62718a;
+    font-size: 10px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    padding: 13px 12px;
+    border-bottom: 1px solid #e4eaf3;
+    white-space: nowrap;
+}
+
+.sales-table tbody td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #edf1f7;
+    vertical-align: middle;
+    color: #374151;
+    font-size: 12px;
+}
+
+.sales-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.sales-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.invoice-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 750;
+    line-height: 1.6;
+}
+
+.invoice-link:hover {
+    color: #174fc4;
+}
+
+.invoice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    color: #2563eb;
+    background: #eef4ff;
+    flex-shrink: 0;
+}
+
+.customer-name {
+    color: #172b4d;
+    font-weight: 650;
+    margin-bottom: 3px;
+}
+
+.customer-phone,
+.sale-time {
+    color: #8794a8;
+    font-size: 11px;
+}
+
+.walk-in-customer {
+    color: #7b8494;
+    font-style: italic;
+}
+
+.product-list {
+    min-width: 190px;
+    max-width: 290px;
+}
+
+.product-line {
+    margin-bottom: 7px;
+    line-height: 1.5;
+}
+
+.product-line:last-child {
+    margin-bottom: 0;
+}
+
+.product-name {
+    color: #263955;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.product-size {
+    display: inline-block;
+    margin: 3px 0 0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #edf4ff;
+    border: 1px solid #dce8ff;
+    color: #245ed5;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.product-quantity {
+    color: #687890;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.legacy-size {
+    display: inline-block;
+    color: #8a93a2;
+    font-size: 10px;
+    font-style: italic;
+}
+
+.amount-main {
+    color: #172b4d;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.amount-subtotal,
+.tax-amount {
+    color: #687890;
+    white-space: nowrap;
+}
+
+.discount-amount {
+    color: #dc3545;
+    white-space: nowrap;
+}
+
+.payment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.payment-cash {
+    background: #eaf8ef;
+    color: #16803c;
+}
+
+.payment-card {
+    background: #eef4ff;
+    color: #2563eb;
+}
+
+.payment-upi {
+    background: #e9f8fb;
+    color: #087f8c;
+}
+
+.payment-other {
+    background: #f1f3f5;
+    color: #667085;
+}
+
+.sale-date {
+    color: #374151;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.sale-time {
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+.sale-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.sale-action-btn {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #dfe6f0;
+    border-radius: 7px;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.sale-edit-btn {
+    color: #2563eb;
+    border-color: #bcd2ff;
+}
+
+.sale-edit-btn:hover {
+    background: #eef4ff;
+}
+
+.sale-view-btn {
+    color: #53647e;
+}
+
+.sale-view-btn:hover {
+    background: #f3f6fb;
+}
+
+.sale-delete-btn {
+    color: #dc3545;
+}
+
+.sale-delete-btn:hover {
+    background: #fff1f2;
+    border-color: #fecdd3;
+}
+
+.sales-empty {
+    text-align: center;
+    padding: 55px 20px;
+    color: #8794a8;
+}
+
+.sales-empty h5 {
+    color: #263955;
+    font-weight: 750;
+    margin: 12px 0 7px;
+}
+
+.sales-empty .empty-icon {
+    font-size: 32px;
+    color: #2868ed;
+}
+
+@media (max-width: 768px) {
     .sales-page {
-        max-width: 1280px;
-        margin: 0 auto;
+        padding: 8px;
     }
 
-
-    /* =====================================================
-       PAGE HEADER
-    ===================================================== */
-
     .sales-header-card {
-        background: #ffffff;
-        border: 1px solid #e8ecf2;
-        border-radius: 14px;
-        padding: 22px 24px;
-        margin-bottom: 22px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        padding: 17px;
     }
 
     .sales-header-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #172033;
-        margin: 0 0 5px;
-    }
-
-    .sales-header-subtitle {
-        color: #7b8494;
-        font-size: 14px;
-        margin: 0;
-    }
-
-    .new-sale-btn {
-        min-height: 44px;
-        border-radius: 8px;
-        padding: 0 18px;
-        font-size: 13px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-
-    /* =====================================================
-       SALES CARD
-    ===================================================== */
-
-    .sales-table-card {
-        background: #ffffff;
-        border: 1px solid #e8ecf2;
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        font-size: 21px;
     }
 
     .sales-table-header {
-        padding: 20px 22px;
-        border-bottom: 1px solid #edf0f4;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
+        padding: 15px;
     }
-
-    .sales-table-title {
-        margin: 0;
-        font-size: 17px;
-        font-weight: 700;
-        color: #172033;
-    }
-
-    .sales-table-subtitle {
-        margin: 4px 0 0;
-        color: #8a93a2;
-        font-size: 12px;
-    }
-
-
-    /* =====================================================
-       TABLE
-    ===================================================== */
-
-    .sales-table-wrapper {
-        overflow-x: auto;
-    }
-
-    .sales-table {
-        min-width: 1050px;
-        margin: 0;
-    }
-
-    .sales-table thead th {
-        background: #f8fafc;
-        color: #6b7280;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        border-bottom: 1px solid #e5e7eb;
-        padding: 14px 14px;
-        white-space: nowrap;
-    }
-
-    .sales-table tbody td {
-        padding: 16px 14px;
-        vertical-align: middle;
-        border-bottom: 1px solid #edf0f4;
-        color: #374151;
-        font-size: 13px;
-    }
-
-    .sales-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .sales-table tbody tr {
-        transition: background-color 0.15s ease;
-    }
-
-    .sales-table tbody tr:hover {
-        background: #fafcff;
-    }
-
-
-    /* =====================================================
-       INVOICE
-    ===================================================== */
-
-    .invoice-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        text-decoration: none;
-        color: #2563eb;
-        font-weight: 700;
-        font-size: 13px;
-    }
-
-    .invoice-link:hover {
-        color: #174fc4;
-    }
-
-    .invoice-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 7px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #eef4ff;
-        color: #2563eb;
-        font-size: 13px;
-    }
-
-
-    /* =====================================================
-       CUSTOMER
-    ===================================================== */
-
-    .customer-name {
-        color: #172033;
-        font-weight: 600;
-        margin-bottom: 3px;
-    }
-
-    .customer-phone {
-        color: #8a93a2;
-        font-size: 11px;
-    }
-
-    .walk-in-customer {
-        color: #7b8494;
-        font-style: italic;
-    }
-
-
-    /* =====================================================
-       PRODUCTS
-    ===================================================== */
-
-    .product-list {
-        min-width: 180px;
-    }
-
-    .product-line {
-        margin-bottom: 4px;
-        white-space: nowrap;
-    }
-
-    .product-line:last-child {
-        margin-bottom: 0;
-    }
-
-    .product-name {
-        color: #374151;
-        font-weight: 600;
-    }
-
-    .product-quantity {
-        color: #8a93a2;
-        margin-left: 4px;
-        font-size: 12px;
-    }
-
-
-    /* =====================================================
-       AMOUNTS
-    ===================================================== */
-
-    .amount-main {
-        color: #172033;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .amount-subtotal {
-        color: #6f7888;
-        white-space: nowrap;
-    }
-
-    .discount-amount {
-        color: #dc3545;
-        white-space: nowrap;
-    }
-
-    .tax-amount {
-        color: #6f7888;
-        white-space: nowrap;
-    }
-
-
-    /* =====================================================
-       PAYMENT BADGES
-    ===================================================== */
-
-    .payment-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .payment-cash {
-        background: #eaf8ef;
-        color: #16803c;
-    }
-
-    .payment-card {
-        background: #eef4ff;
-        color: #2563eb;
-    }
-
-    .payment-upi {
-        background: #e9f8fb;
-        color: #087f8c;
-    }
-
-    .payment-other {
-        background: #f1f3f5;
-        color: #667085;
-    }
-
-
-    /* =====================================================
-       DATE
-    ===================================================== */
-
-    .sale-date {
-        color: #374151;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .sale-time {
-        color: #8a93a2;
-        font-size: 11px;
-        margin-top: 3px;
-    }
-
-
-    /* =====================================================
-       ACTIONS
-    ===================================================== */
-
-    .sale-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 6px;
-        white-space: nowrap;
-    }
-
-    .sale-action-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 7px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #e1e5eb;
-        background: #ffffff;
-        text-decoration: none;
-        transition: all 0.15s ease;
-    }
-
-    .sale-view-btn {
-        color: #2563eb;
-    }
-
-    .sale-view-btn:hover {
-        background: #eef4ff;
-        border-color: #cbdcff;
-    }
-
-    .sale-delete-btn {
-        color: #dc3545;
-    }
-
-    .sale-delete-btn:hover {
-        background: #fff1f2;
-        border-color: #fecdd3;
-    }
-
-
-    /* =====================================================
-       EMPTY STATE
-    ===================================================== */
-
-    .sales-empty {
-        text-align: center;
-        padding: 70px 20px;
-    }
-
-    .sales-empty-icon {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 18px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #eef4ff;
-        color: #2563eb;
-        font-size: 30px;
-    }
-
-    .sales-empty h5 {
-        color: #172033;
-        font-weight: 700;
-        margin-bottom: 7px;
-    }
-
-    .sales-empty p {
-        color: #8a93a2;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-
-
-    /* =====================================================
-       RESPONSIVE
-    ===================================================== */
-
-    @media (max-width: 768px) {
-
-        .sales-header-card {
-            padding: 18px;
-        }
-
-        .sales-header-title {
-            font-size: 21px;
-        }
-
-        .new-sale-btn {
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .sales-table-header {
-            padding: 17px;
-        }
-
-        .sales-table-card {
-            border-radius: 12px;
-        }
-
-    }
-
+}
 </style>
-
 
 <div class="sales-page">
 
-
-    <!-- =================================================
-         PAGE HEADER
-    ================================================= -->
-
+    <!-- Page heading -->
     <div class="sales-header-card">
-
-        <div class="row align-items-center g-3">
-
-            <div class="col-12 col-md-7">
-
-                <h2 class="sales-header-title">
-                    Sales
-                </h2>
-
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h2 class="sales-header-title">Sales</h2>
                 <p class="sales-header-subtitle">
-                    Manage invoices, customers, payments and sales transactions.
+                    Manage invoices, customers, payments and sold sizes.
                 </p>
-
             </div>
 
-
-            <div class="col-12 col-md-5 text-md-end">
-
-                <a
-                    href="{% url 'new_sale' %}"
-                    class="btn btn-primary new-sale-btn"
-                >
-
-                    <i class="bi bi-plus-lg me-2"></i>
-
-                    New Sale
-
-                </a>
-
-            </div>
-
+            <a href="{% url 'new_sale' %}" class="btn btn-primary px-4 py-2">
+                <i class="bi bi-plus-lg me-2"></i>New Sale
+            </a>
         </div>
-
     </div>
 
-
-
-    <!-- =================================================
-         SALES TABLE
-    ================================================= -->
-
+    <!-- Sales table -->
     <div class="sales-table-card">
-
-
         <div class="sales-table-header">
-
             <div>
-
-                <h5 class="sales-table-title">
-                    Sales Transactions
-                </h5>
-
+                <h5 class="sales-table-title">Sales Transactions</h5>
                 <p class="sales-table-subtitle">
-                    All invoices created in BusinessFlow
+                    Products, sizes and quantities sold in each invoice.
                 </p>
-
             </div>
 
-
-            <div>
-
-                <span class="badge bg-light text-dark border px-3 py-2">
-
-                    <i class="bi bi-receipt me-1"></i>
-
-                    {{ sales|length }} Invoice{{ sales|length|pluralize }}
-
-                </span>
-
-            </div>
-
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="bi bi-receipt me-1"></i>
+                {{ sales|length }} Invoice{{ sales|length|pluralize }}
+            </span>
         </div>
 
+        <div class="sales-table-wrapper">
+            <table class="sales-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Products / Sizes</th>
+                        <th>Subtotal</th>
+                        <th>Discount</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="invoice-icon">
+                                    <i class="bi bi-receipt"></i>
+                                </span>
 
-        {% if sales %}
+                                <a class="invoice-link"
+                                   href="{% url 'sale_detail' sale.pk %}">
+                                    {{ sale.invoice_number }}
+                                </a>
+                            </div>
+                        </td>
 
+                        <td>
+                            {% if sale.customer %}
+                                <div class="customer-name">
+                                    {{ sale.customer.name }}
+                                </div>
+                                {% if sale.customer.phone %}
+                                    <div class="customer-phone">
+                                        <i class="bi bi-telephone me-1"></i>
+                                        {{ sale.customer.phone }}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="walk-in-customer">
+                                    <i class="bi bi-person me-1"></i>
+                                    Walk-in Customer
+                                </span>
+                            {% endif %}
+                        </td>
 
-            <div class="sales-table-wrapper">
-
-                <table class="table sales-table align-middle">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Invoice
-                            </th>
-
-                            <th>
-                                Customer
-                            </th>
-
-                            <th>
-                                Products
-                            </th>
-
-                            <th>
-                                Subtotal
-                            </th>
-
-                            <th>
-                                Discount
-                            </th>
-
-                            <th>
-                                Tax
-                            </th>
-
-                            <th>
-                                Total
-                            </th>
-
-                            <th>
-                                Payment
-                            </th>
-
-                            <th>
-                                Date
-                            </th>
-
-                            <th class="text-end">
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-
-                        {% for sale in sales %}
-
-
-                            <tr>
-
-
-                                <!-- =================================
-                                     INVOICE
-                                ================================== -->
-
-                                <td>
-
-                                    <a
-                                        href="{% url 'sale_detail' sale.id %}"
-                                        class="invoice-link"
-                                    >
-
-                                        <span class="invoice-icon">
-
-                                            <i class="bi bi-receipt"></i>
-
-                                        </span>
-
-                                        {{ sale.invoice_number }}
-
-                                    </a>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     CUSTOMER
-                                ================================== -->
-
-                                <td>
-
-                                    {% if sale.customer %}
-
-                                        <div class="customer-name">
-
-                                            {{ sale.customer.name }}
-
+                        <td>
+                            <div class="product-list">
+                                {% for item in sale.items.all %}
+                                    <div class="product-line">
+                                        <div class="product-name">
+                                            {{ item.product.name }}
                                         </div>
 
-
-                                        {% if sale.customer.phone %}
-
-                                            <div class="customer-phone">
-
-                                                <i class="bi bi-telephone me-1"></i>
-
-                                                {{ sale.customer.phone }}
-
-                                            </div>
-
+                                        {% if item.product_size %}
+                                            <span class="product-size">
+                                                Size: {{ item.product_size.size }}
+                                            </span>
+                                        {% else %}
+                                            <span class="legacy-size">
+                                                Size not recorded
+                                            </span>
                                         {% endif %}
 
-                                    {% else %}
-
-                                        <span class="walk-in-customer">
-
-                                            <i class="bi bi-person me-1"></i>
-
-                                            Walk-in Customer
-
+                                        <span class="product-quantity">
+                                            × {{ item.quantity }}
                                         </span>
-
-                                    {% endif %}
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     PRODUCTS
-                                ================================== -->
-
-                                <td>
-
-                                    <div class="product-list">
-
-
-                                        {% for item in sale.items.all %}
-
-                                            <div class="product-line">
-
-                                                <span class="product-name">
-
-                                                    {{ item.product.name }}
-
-                                                </span>
-
-                                                <span class="product-quantity">
-
-                                                    × {{ item.quantity }}
-
-                                                </span>
-
-                                            </div>
-
-                                        {% empty %}
-
-                                            <span class="text-muted">
-
-                                                No products
-
-                                            </span>
-
-                                        {% endfor %}
-
-
                                     </div>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     SUBTOTAL
-                                ================================== -->
-
-                                <td>
-
-                                    <span class="amount-subtotal">
-
-                                        ₹{{ sale.subtotal|floatformat:2 }}
-
-                                    </span>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     DISCOUNT
-                                ================================== -->
-
-                                <td>
-
-                                    {% if sale.discount_amount > 0 %}
-
-                                        <span class="discount-amount">
-
-                                            -₹{{ sale.discount_amount|floatformat:2 }}
-
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="text-muted">
-
-                                            ₹0.00
-
-                                        </span>
-
-                                    {% endif %}
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     TAX
-                                ================================== -->
-
-                                <td>
-
-                                    <span class="tax-amount">
-
-                                        ₹{{ sale.tax|floatformat:2 }}
-
-                                    </span>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     TOTAL
-                                ================================== -->
-
-                                <td>
-
-                                    <span class="amount-main">
-
-                                        ₹{{ sale.total_amount|floatformat:2 }}
-
-                                    </span>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     PAYMENT
-                                ================================== -->
-
-                                <td>
-
-
-                                    {% if sale.payment_method == "CASH" %}
-
-                                        <span class="payment-badge payment-cash">
-
-                                            <i class="bi bi-cash-stack"></i>
-
-                                            Cash
-
-                                        </span>
-
-
-                                    {% elif sale.payment_method == "CARD" %}
-
-                                        <span class="payment-badge payment-card">
-
-                                            <i class="bi bi-credit-card"></i>
-
-                                            Card
-
-                                        </span>
-
-
-                                    {% elif sale.payment_method == "UPI" %}
-
-                                        <span class="payment-badge payment-upi">
-
-                                            <i class="bi bi-phone"></i>
-
-                                            UPI
-
-                                        </span>
-
-
-                                    {% else %}
-
-                                        <span class="payment-badge payment-other">
-
-                                            <i class="bi bi-wallet2"></i>
-
-                                            Other
-
-                                        </span>
-
-                                    {% endif %}
-
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     DATE
-                                ================================== -->
-
-                                <td>
-
-                                    <div class="sale-date">
-
-                                        {{ sale.created_at|date:"d M Y" }}
-
-                                    </div>
-
-                                    <div class="sale-time">
-
-                                        {{ sale.created_at|date:"h:i A" }}
-
-                                    </div>
-
-                                </td>
-
-
-
-                                <!-- =================================
-                                     ACTIONS
-                                ================================== -->
-
-                                <td>
-
-                                    <div class="sale-actions">
-
-                                        <a 
-                                            href="{% url 'sale_edit' sale.pk %}"
-                                            class="btn btn-outline-primary"
-                                            title="Edit Invoice">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-
-
-                                        <a
-                                            href="{% url 'sale_detail' sale.id %}"
-                                            class="sale-action-btn sale-view-btn"
-                                            title="View Invoice"
-                                        >
-
-                                            <i class="bi bi-eye"></i>
-
-                                        </a>
-
-
-                                        <a
-                                            href="{% url 'sale_delete' sale.id %}"
-                                            class="sale-action-btn sale-delete-btn"
-                                            title="Delete Invoice"
-                                        >
-
-                                            <i class="bi bi-trash"></i>
-
-                                        </a>
-
-
-                                    </div>
-
-                                </td>
-
-
-                            </tr>
-
-
-                        {% endfor %}
-
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-        {% else %}
-
-
-            <!-- =============================================
-                 EMPTY STATE
-            ============================================== -->
-
-            <div class="sales-empty">
-
-                <div class="sales-empty-icon">
-
-                    <i class="bi bi-receipt"></i>
-
-                </div>
-
-
-                <h5>
-                    No Sales Found
-                </h5>
-
-
-                <p>
-                    You haven't created any sales invoices yet.
-                </p>
-
-
-                <a
-                    href="{% url 'new_sale' %}"
-                    class="btn btn-primary new-sale-btn"
-                >
-
-                    <i class="bi bi-plus-lg me-2"></i>
-
-                    Create First Sale
-
-                </a>
-
-            </div>
-
-
-        {% endif %}
-
-
+                                {% empty %}
+                                    <span class="text-muted">No items</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="amount-subtotal">
+                                ₹{{ sale.subtotal|floatformat:2 }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="{% if sale.discount_amount %}discount-amount{% else %}amount-subtotal{% endif %}">
+                                -₹{{ sale.discount_amount|floatformat:2 }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="tax-amount">
+                                ₹{{ sale.tax|floatformat:2 }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="amount-main">
+                                ₹{{ sale.total_amount|floatformat:2 }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {% if sale.payment_method == "CASH" %}
+                                <span class="payment-badge payment-cash">
+                                    <i class="bi bi-cash"></i> Cash
+                                </span>
+                            {% elif sale.payment_method == "CARD" %}
+                                <span class="payment-badge payment-card">
+                                    <i class="bi bi-credit-card"></i> Card
+                                </span>
+                            {% elif sale.payment_method == "UPI" %}
+                                <span class="payment-badge payment-upi">
+                                    <i class="bi bi-phone"></i> UPI
+                                </span>
+                            {% else %}
+                                <span class="payment-badge payment-other">
+                                    {{ sale.get_payment_method_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="sale-date">
+                                {{ sale.created_at|date:"d M Y" }}
+                            </div>
+                            <div class="sale-time">
+                                {{ sale.created_at|date:"h:i A" }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="sale-actions">
+                                <a href="{% url 'sale_edit' sale.pk %}"
+                                   class="sale-action-btn sale-edit-btn"
+                                   title="Edit invoice"
+                                   aria-label="Edit invoice">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <a href="{% url 'sale_detail' sale.pk %}"
+                                   class="sale-action-btn sale-view-btn"
+                                   title="View invoice"
+                                   aria-label="View invoice">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                <a href="{% url 'sale_delete' sale.pk %}"
+                                   class="sale-action-btn sale-delete-btn"
+                                   title="Delete invoice"
+                                   aria-label="Delete invoice">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10">
+                            <div class="sales-empty">
+                                <div class="empty-icon">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                                <h5>No sales yet</h5>
+                                <p>Create your first invoice to see it here.</p>
+                                <a href="{% url 'new_sale' %}"
+                                   class="btn btn-primary">
+                                    <i class="bi bi-plus-lg me-2"></i>Create First Sale
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-
 </div>
-
-
 {% endblock %}

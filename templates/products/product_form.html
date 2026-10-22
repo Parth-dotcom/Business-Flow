@@ -1,180 +1,350 @@
-```html
+
 {% extends "base.html" %}
 
 {% block title %}
-    {% if product %}Edit Product{% else %}Add Product{% endif %} | BusinessFlow
+    {% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %} | Ananta Aura
 {% endblock %}
 
 {% block content %}
+<style>
+.product-form-page{max-width:1150px;margin:auto}
+.product-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 3px 12px #00000008;overflow:hidden;margin-bottom:24px}
+.product-card-header{padding:20px 24px;border-bottom:1px solid #edf0f2}
+.product-card-body{padding:24px}
+.section-description{color:#6b7280;font-size:14px;margin:5px 0 0}
+.form-label{font-weight:600;color:#374151}
+.form-control,.form-select{min-height:43px;border-radius:8px}
+textarea.form-control{min-height:100px}
+.size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.size-option{display:flex;align-items:center;gap:8px;border:1px solid #d8dee7;border-radius:10px;padding:10px;background:#fff;min-width:0}
+.size-option:has(input:checked){border-color:#2563eb;background:#eff6ff}
+.size-option input{width:17px;height:17px;flex-shrink:0}
+.size-option-label{flex:1;overflow-wrap:anywhere;font-weight:600;color:#374151}
+.remove-size{border:0;background:#fee2e2;color:#b91c1c;border-radius:6px;padding:4px 8px;font-size:12px;white-space:nowrap}
+.remove-size:hover{background:#fecaca}
+.stock-section{display:none;margin-top:28px;padding-top:24px;border-top:1px solid #edf0f2}
+.stock-section.visible{display:block}
+.stock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.stock-card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff}
+.stock-card[hidden]{display:none!important}
+.stock-size-label{display:block;font-weight:600;margin-bottom:10px;color:#374151}
+.stock-total{margin-top:20px;padding:18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.stock-total strong{font-size:24px;color:#1d4ed8}
+.form-error{color:#dc2626;font-size:13px;margin-top:5px}
+.custom-size-panel{margin-top:22px;padding:18px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px}
+@media(max-width:768px){.size-options{grid-template-columns:repeat(2,minmax(0,1fr))}.stock-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-card-body{padding:18px}.product-card-header{padding:18px}}
+@media(max-width:420px){.size-options,.stock-grid{grid-template-columns:1fr}}
+</style>
 
-<div class="container-fluid">
-
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4">
+<div class="product-form-page">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
-            <h2 class="mb-1">
-                {% if product %}Edit Product{% else %}Add Product{% endif %}
-            </h2>
-
-            <p class="text-muted mb-0">
-                {% if product %}
-                    Update product information and inventory details.
-                {% else %}
-                    Add a new product to your inventory.
-                {% endif %}
-            </p>
+            <h2 class="mb-1">{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}</h2>
+            <p class="text-muted mb-0">Manage product details and size-wise inventory.</p>
         </div>
-
-        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
-            ← Back to Products
-        </a>
+        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Back to Products</a>
     </div>
 
-    <!-- Form Card -->
-    <div class="card shadow-sm">
-        <div class="card-body">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
 
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {% for error in form.non_field_errors %}
-                        <div>{{ error }}</div>
+    <form method="post" id="productForm">
+        {% csrf_token %}
+
+        <div class="product-card">
+            <div class="product-card-header">
+                <h5 class="mb-1">Product Details</h5>
+                <p class="section-description">Enter the basic information for your product.</p>
+            </div>
+            <div class="product-card-body">
+                <div class="row g-4">
+                    {% for field in form %}
+                        {% if field.name != "sizes" and not field.name|slice:":6" == "stock_" %}
+                        <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %}">
+                            {% if field.name == "is_active" %}
+                            <div class="form-check mt-2">
+                                {{ field }}
+                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            </div>
+                            {% else %}
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% endif %}
+                            {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
-            {% endif %}
-
-            <form method="post" novalidate>
-                {% csrf_token %}
-
-                <div class="row g-4">
-
-                    <!-- Product Name -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Product Name <span class="text-danger">*</span>
-                        </label>
-                        {{ form.name }}
-                        {% for error in form.name.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Category -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Category <span class="text-danger">*</span>
-                        </label>
-                        {{ form.category }}
-                        {% for error in form.category.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- SKU -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            SKU <span class="text-danger">*</span>
-                        </label>
-                        {{ form.sku }}
-                        <div class="form-text">Example: WM-001</div>
-                        {% for error in form.sku.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Selling Price -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Selling Price (₹) <span class="text-danger">*</span>
-                        </label>
-                        {{ form.price }}
-                        <div class="form-text">Price charged to the customer per unit.</div>
-                        {% for error in form.price.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Purchase Cost -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Purchase Cost (₹) <span class="text-danger">*</span>
-                        </label>
-                        {{ form.cost_price }}
-                        <div class="form-text">Cost paid to purchase one unit of this product.</div>
-                        {% for error in form.cost_price.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Stock -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Stock Quantity <span class="text-danger">*</span>
-                        </label>
-                        {{ form.stock }}
-                        {% for error in form.stock.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Low Stock Limit -->
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Low Stock Limit <span class="text-danger">*</span>
-                        </label>
-                        {{ form.low_stock_limit }}
-                        <div class="form-text">
-                            Alert will appear when stock reaches this level.
-                        </div>
-                        {% for error in form.low_stock_limit.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Description -->
-                    <div class="col-12">
-                        <label class="form-label">Description</label>
-                        {{ form.description }}
-                        {% for error in form.description.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Active Status -->
-                    <div class="col-12">
-                        <div class="border rounded p-3">
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    <strong>Active Product</strong>
-                                    <div class="text-muted small">
-                                        Active products can be used in sales.
-                                    </div>
-                                </label>
-                            </div>
-
-                            {% for error in form.is_active.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Buttons -->
-                <div class="mt-4 pt-3 border-top">
-                    <button type="submit" class="btn btn-primary">
-                        {% if product %}Update Product{% else %}Save Product{% endif %}
-                    </button>
-
-                    <a href="{% url 'product_list' %}" class="btn btn-secondary ms-2">
-                        Cancel
-                    </a>
-                </div>
-
-            </form>
+            </div>
         </div>
-    </div>
+
+        <div class="product-card">
+            <div class="product-card-header">
+                <h5 class="mb-1">Available Sizes</h5>
+                <p class="section-description">Select sizes for this product. Use Remove to take a size out of this chart.</p>
+            </div>
+
+            <div class="product-card-body">
+                <div id="sizeOptions" class="size-options">
+                    {% for size, label in form.fields.sizes.choices %}
+                    <div class="size-option" data-size-option="{{ size }}">
+                        <input
+                            type="checkbox"
+                            name="sizes"
+                            value="{{ size }}"
+                            id="id_size_{{ forloop.counter }}"
+                            {% if size in form.sizes.value %}checked{% endif %}
+                        >
+                        <label class="size-option-label" for="id_size_{{ forloop.counter }}">{{ label }}</label>
+                        <button type="button" class="remove-size" data-remove-size="{{ size }}" aria-label="Remove size {{ label }}">× Remove</button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% for error in form.sizes.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+
+                <div class="custom-size-panel">
+                    <label class="form-label" for="customSizeInput">Add a custom size</label>
+                    <p class="section-description mb-3">Examples: 9XL, FREE SIZE, PETITE, CUSTOM 40.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <input type="text" id="customSizeInput" class="form-control flex-grow-1" style="min-width:180px" maxlength="30" placeholder="Enter custom size">
+                        <button type="button" id="addSizeButton" class="btn btn-outline-primary">+ Add Size</button>
+                    </div>
+                    <div id="customSizeError" class="form-error" role="alert"></div>
+                </div>
+
+                <div id="stockSection" class="stock-section">
+                    <h6 class="mb-1">Stock Quantity by Size</h6>
+                    <p class="section-description">Enter the quantity available for each selected size.</p>
+                    <div id="stockGrid" class="stock-grid">
+                        {% for row in form.size_rows %}
+                        <div class="stock-card" data-stock-size="{{ row.size }}" hidden>
+                            <label class="stock-size-label" for="{{ row.field.id_for_label }}">{{ row.label }} Stock</label>
+                            {{ row.field }}
+                            {% for error in row.field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="stock-total">
+                        <div>
+                            <div class="fw-semibold">Total Product Stock</div>
+                            <div class="section-description">Sum of selected size quantities</div>
+                        </div>
+                        <strong id="totalStock">0</strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <strong>Note:</strong> A size with stock remaining or a linked sale cannot be removed. This protects your inventory and billing history.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <button type="submit" class="btn btn-primary px-4">
+                {% if form.instance.pk %}Save Changes{% else %}Add Product{% endif %}
+            </button>
+            <a href="{% url 'product_list' %}" class="btn btn-light border px-4">Cancel</a>
+        </div>
+    </form>
+</div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const sizeOptions = document.getElementById("sizeOptions");
+    const stockGrid = document.getElementById("stockGrid");
+    const stockSection = document.getElementById("stockSection");
+    const totalDisplay = document.getElementById("totalStock");
+    const sizeInput = document.getElementById("customSizeInput");
+    const addButton = document.getElementById("addSizeButton");
+    const errorDisplay = document.getElementById("customSizeError");
+
+    function normalizeSize(value) {
+        return value.trim().toUpperCase().replace(/\s+/g, " ");
+    }
+
+    function stockName(size) {
+        return "stock_" + size.replace(/[\s-]+/g, "_");
+    }
+
+    function findCheckbox(size) {
+        return Array.from(sizeOptions.querySelectorAll('input[name="sizes"]'))
+            .find(input => input.value === size);
+    }
+
+    function findCard(size) {
+        return Array.from(stockGrid.querySelectorAll("[data-stock-size]"))
+            .find(card => card.dataset.stockSize === size);
+    }
+
+    function createCard(size) {
+        const card = document.createElement("div");
+        card.className = "stock-card";
+        card.dataset.stockSize = size;
+        card.hidden = true;
+
+        const label = document.createElement("label");
+        label.className = "stock-size-label";
+        label.textContent = size + " Stock";
+        label.htmlFor = "id_" + stockName(size);
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.name = stockName(size);
+        input.id = "id_" + stockName(size);
+        input.className = "form-control size-stock-input";
+        input.min = "0";
+        input.step = "1";
+        input.value = "0";
+        input.disabled = true;
+        input.placeholder = "Enter quantity";
+
+        card.append(label, input);
+        stockGrid.appendChild(card);
+        input.addEventListener("input", updateStock);
+        return card;
+    }
+
+    function addSizeOption(size) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "size-option";
+        wrapper.dataset.sizeOption = size;
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = "sizes";
+        checkbox.value = size;
+        checkbox.id = "id_custom_" + size.replace(/[^A-Z0-9_-]/g, "_");
+        checkbox.checked = true;
+
+        const label = document.createElement("label");
+        label.className = "size-option-label";
+        label.htmlFor = checkbox.id;
+        label.textContent = size;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "remove-size";
+        removeButton.dataset.removeSize = size;
+        removeButton.textContent = "× Remove";
+        removeButton.setAttribute("aria-label", "Remove size " + size);
+
+        wrapper.append(checkbox, label, removeButton);
+        sizeOptions.appendChild(wrapper);
+        return checkbox;
+    }
+
+    function addSize() {
+        errorDisplay.textContent = "";
+        const size = normalizeSize(sizeInput.value);
+
+        if (!size) {
+            errorDisplay.textContent = "Enter a size name first.";
+            return;
+        }
+
+        if (size.length > 30 || !/^[A-Z0-9 _-]+$/.test(size)) {
+            errorDisplay.textContent = "Use up to 30 characters: letters, numbers, spaces or hyphens.";
+            return;
+        }
+
+        let checkbox = findCheckbox(size);
+
+        if (checkbox) {
+            checkbox.checked = true;
+        } else {
+            checkbox = addSizeOption(size);
+        }
+
+        if (!findCard(size)) {
+            createCard(size);
+        }
+
+        sizeInput.value = "";
+        updateStock(checkbox);
+    }
+
+    function removeSize(size) {
+        const checkbox = findCheckbox(size);
+        if (!checkbox) return;
+
+        // Uncheck it so the server can validate stock and sale references.
+        checkbox.checked = false;
+
+        // Keep the checkbox in the form submission as unchecked.
+        // Hiding the option makes it disappear from the visible chart.
+        const option = checkbox.closest(".size-option");
+        if (option) option.remove();
+
+        updateStock(checkbox);
+    }
+
+    function updateStock(changedCheckbox) {
+        let total = 0;
+        let count = 0;
+
+        sizeOptions.querySelectorAll('input[name="sizes"]').forEach(function (checkbox) {
+            const size = checkbox.value;
+            let card = findCard(size);
+            if (!card) card = createCard(size);
+
+            const input = card.querySelector("input");
+            const selected = checkbox.checked;
+
+            card.hidden = !selected;
+            input.disabled = !selected;
+
+            if (selected) {
+                if (changedCheckbox === checkbox && input.dataset.initialized !== "true") {
+                    input.value = "1";
+                }
+
+                input.dataset.initialized = "true";
+                const quantity = parseInt(input.value, 10);
+                if (Number.isFinite(quantity) && quantity >= 0) total += quantity;
+                count++;
+            }
+        });
+
+        stockSection.classList.toggle("visible", count > 0);
+        totalDisplay.textContent = total;
+    }
+
+    addButton.addEventListener("click", addSize);
+
+    sizeInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            addSize();
+        }
+    });
+
+    sizeOptions.addEventListener("change", function (event) {
+        if (event.target.matches('input[name="sizes"]')) {
+            updateStock(event.target);
+        }
+    });
+
+    sizeOptions.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-remove-size]");
+        if (button) {
+            event.preventDefault();
+            removeSize(button.dataset.removeSize);
+        }
+    });
+
+    stockGrid.addEventListener("input", function (event) {
+        if (event.target.matches("input[type='number']")) {
+            updateStock();
+        }
+    });
+
+    updateStock();
+});
+</script>
 {% endblock %}
-```
