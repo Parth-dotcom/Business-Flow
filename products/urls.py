@@ -10,61 +10,41 @@ from .views import (
     category_create,
     category_edit,
     category_delete,
+    barcode_labels,
+    smart_profit_advisor,
 )
 
 
 urlpatterns = [
+    path("", product_list, name="product_list"),
+
+    # Barcode Labels
+    path("barcodes/", barcode_labels, name="barcode_labels"),
+
+    # Smart Profit Advisor
     path(
-        "",
-        product_list,
-        name="product_list",
+        "smart-profit-advisor/",
+        smart_profit_advisor,
+        name="smart_profit_advisor",
     ),
 
-    path(
-        "categories/",
-        category_list,
-        name="category_list",
-    ),
-
-    path(
-        "categories/add/",
-        category_create,
-        name="category_create",
-    ),
-
+    # Categories
+    path("categories/", category_list, name="category_list"),
+    path("categories/add/", category_create, name="category_create"),
     path(
         "categories/<int:pk>/edit/",
         category_edit,
         name="category_edit",
     ),
-
     path(
         "categories/<int:pk>/delete/",
         category_delete,
         name="category_delete",
     ),
 
-    path(
-        "add/",
-        product_create,
-        name="product_create",
-    ),
-
-    path(
-        "<int:pk>/",
-        product_detail,
-        name="product_detail",
-    ),
-
-    path(
-        "<int:pk>/edit/",
-        product_edit,
-        name="product_edit",
-    ),
-
-    path(
-        "<int:pk>/delete/",
-        product_delete,
-        name="product_delete",
-    ),
+    # Products
+    path("add/", product_create, name="product_create"),
+    path("<int:pk>/", product_detail, name="product_detail"),
+    path("<int:pk>/edit/", product_edit, name="product_edit"),
+    path("<int:pk>/delete/", product_delete, name="product_delete"),
 ]

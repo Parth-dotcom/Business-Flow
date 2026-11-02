@@ -1,418 +1,78 @@
 {% extends "base.html" %}
+
 {% block title %}{% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %} | Ananta Aura{% endblock %}
 {% block page_title %}{% if edit_mode %}Edit Invoice{% else %}New Sale{% endif %}{% endblock %}
 
 {% block content %}
 <style>
-.sale-page {
-    max-width: 1500px;
-    margin: 0 auto;
-    padding: 12px 16px 24px;
-    color: #172b4d;
-    font-size: 14px;
-}
-
-.sale-page * { box-sizing: border-box; }
-
-.sale-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.sale-heading {
-    margin: 0;
-    font-size: 25px;
-    font-weight: 750;
-    color: #142746;
-}
-
-.sale-description {
-    margin: 4px 0 0;
-    color: #718096;
-    font-size: 13px;
-}
-
-.sale-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 11px;
-    margin-bottom: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 7px rgba(20, 40, 80, .035);
-}
-
-.sale-card-header {
-    min-height: 48px;
-    padding: 12px 17px;
-    border-bottom: 1px solid #edf1f7;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.sale-card-title {
-    font-size: 15px;
-    font-weight: 750;
-    margin: 0;
-    color: #172b4d;
-}
-
-.sale-card-body { padding: 15px 17px; }
-
-.sale-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #465671;
-}
-
-.sale-page .form-control,
-.sale-page .form-select {
-    min-height: 39px;
-    height: 39px;
-    border: 1px solid #d8e1ee;
-    border-radius: 7px;
-    font-size: 13px;
-    color: #243650;
-    box-shadow: none;
-}
-
-.sale-page .form-control:focus,
-.sale-page .form-select:focus {
-    border-color: #3978f6;
-    box-shadow: 0 0 0 3px rgba(57, 120, 246, .10);
-}
-
-.sale-page .btn {
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.sale-page .btn-primary {
-    background: #2868ed;
-    border-color: #2868ed;
-}
-
-.sale-page .btn-primary:hover {
-    background: #1d55ce;
-    border-color: #1d55ce;
-}
-
-.sale-page .btn-outline-secondary {
-    border-color: #d4deeb;
-    color: #53647e;
-}
-
-.sale-page .btn-sm { padding: 5px 9px; }
-
-.sale-info-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(200px, 1fr);
-    gap: 15px;
-}
-
-.product-add-area {
-    background: #f7f9fe;
-    border: 1px solid #e3eaf7;
-    border-radius: 9px;
-    padding: 13px;
-}
-
-/* Product, size, quantity and button layout */
-.product-grid {
-    display: grid;
-    grid-template-columns:
-        minmax(220px, 2.1fr)
-        minmax(140px, 1fr)
-        100px
-        125px;
-    gap: 12px;
-    align-items: start;
-}
-
-.product-grid > div { min-width: 0; }
-
-.product-grid .sale-label {
-    height: 18px;
-    margin: 0 0 6px;
-    line-height: 18px;
-}
-
-.product-grid .form-control,
-.product-grid .form-select,
-.product-grid .add-product-btn {
-    height: 39px;
-    min-height: 39px;
-}
-
-.product-grid .stock-info {
-    min-height: 16px;
-    margin-top: 5px;
-    color: #74839a;
-    font-size: 11px;
-}
-
-/*
-The input labels occupy 24px above the fields.
-Use the same 24px offset for the button.
-Do not add a label inside the button column.
-*/
-.product-add-column {
-    padding-top: 24px;
-}
-
-.product-grid .add-product-btn {
-    display: block;
-    width: 100%;
-    height: 39px;
-    min-height: 39px;
-    margin: 0;
-    padding: 0 8px;
-    white-space: nowrap;
-}
-
-.invoice-table {
-    margin: 0;
-    font-size: 13px;
-}
-
-.invoice-table thead th {
-    background: #f5f8fd;
-    color: #62718a;
-    font-size: 10px;
-    font-weight: 750;
-    text-transform: uppercase;
-    letter-spacing: .45px;
-    white-space: nowrap;
-    border-bottom: 1px solid #e4eaf3;
-    padding: 11px 13px;
-}
-
-.invoice-table tbody td {
-    padding: 10px 13px;
-    vertical-align: middle;
-    border-bottom: 1px solid #eef2f7;
-}
-
-.invoice-table tbody tr:last-child td { border-bottom: 0; }
-
-.product-name {
-    color: #1d3151;
-    font-weight: 700;
-}
-
-.product-sku {
-    color: #8491a5;
-    font-size: 12px;
-}
-
-.size-badge {
-    display: inline-block;
-    min-width: 29px;
-    padding: 4px 7px;
-    text-align: center;
-    color: #245ed5;
-    background: #edf4ff;
-    border: 1px solid #dce9ff;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 750;
-}
-
-.quantity-input {
-    width: 72px;
-    min-height: 33px !important;
-    height: 33px !important;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.empty-cart {
-    text-align: center;
-    padding: 23px 12px;
-    color: #8a97aa;
-    font-size: 13px;
-}
-
-.billing-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr);
-    gap: 14px;
-    align-items: stretch;
-}
-
-.discount-toggle {
-    display: flex;
-    border: 1px solid #dce5f2;
-    border-radius: 7px;
-    overflow: hidden;
-    margin-bottom: 13px;
-}
-
-.discount-toggle label {
-    flex: 1;
-    margin: 0;
-    cursor: pointer;
-}
-
-.discount-toggle label + label {
-    border-left: 1px solid #dce5f2;
-}
-
-.discount-toggle input {
-    margin: 0 5px 0 0;
-    accent-color: #2868ed;
-}
-
-.discount-toggle span {
-    display: block;
-    padding: 10px 6px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 650;
-    color: #53647e;
-}
-
-.discount-toggle label:has(input:checked) { background: #edf4ff; }
-.discount-toggle label:has(input:checked) span { color: #245ed5; }
-
-.summary-card { border-color: #dbe6f8; }
-.summary-card .sale-card-header { background: #f8faff; }
-
-.summary-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 0;
-    color: #687890;
-    font-size: 13px;
-}
-
-.summary-row strong {
-    color: #233653;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.summary-divider {
-    border: 0;
-    border-top: 1px solid #e3eaf4;
-    margin: 7px 0;
-}
-
-.grand-total-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 6px 0 10px;
-}
-
-.grand-total-label {
-    font-size: 14px;
-    font-weight: 750;
-    color: #233653;
-}
-
-.grand-total-value {
-    font-size: 25px;
-    line-height: 1.2;
-    font-weight: 800;
-    color: #2868ed;
-    white-space: nowrap;
-}
-
-.create-btn {
-    width: 100%;
-    min-height: 44px;
-    margin-top: 7px;
-    background: #2868ed !important;
-    border-color: #2868ed !important;
-    font-size: 14px !important;
-    font-weight: 750 !important;
-}
-
-.create-btn:hover { background: #1d55ce !important; }
-
-.section-count {
-    color: #7b8ba4;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-@media (max-width: 1000px) {
-    .product-grid {
-        grid-template-columns: minmax(0, 1fr) minmax(130px, 1fr);
-    }
-
-    .product-add-column { padding-top: 24px; }
-
-    .billing-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 767px) {
-    .sale-page { padding: 8px 8px 20px; }
-    .sale-heading { font-size: 22px; }
-    .sale-topbar { align-items: flex-start; }
-
-    .sale-info-grid,
-    .product-grid,
-    .billing-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .product-add-column { padding-top: 0; }
-
-    .product-grid .sale-label {
-        height: auto;
-        min-height: 18px;
-    }
-
-    .sale-card-body { padding: 12px; }
-    .sale-card-header { padding: 11px 12px; }
-
-    .invoice-table thead th,
-    .invoice-table tbody td {
-        padding: 9px 8px;
-    }
-
-    .grand-total-value { font-size: 22px; }
-}
+.sale-page{max-width:1500px;margin:auto;padding:12px 16px 24px;color:#172b4d;font-size:14px}
+.sale-page *{box-sizing:border-box}
+.sale-topbar,.sale-card-header,.summary-row,.grand-total-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sale-topbar{margin-bottom:16px}
+.sale-heading{margin:0;font-size:25px;font-weight:750;color:#142746}
+.sale-description{margin:4px 0 0;color:#718096;font-size:13px}
+.sale-card{background:#fff;border:1px solid #e2e8f0;border-radius:11px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 7px #14285009}
+.sale-card-header{min-height:48px;padding:12px 17px;border-bottom:1px solid #edf1f7}
+.sale-card-title{font-size:15px;font-weight:750;margin:0;color:#172b4d}
+.sale-card-body{padding:15px 17px}
+.sale-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:#465671}
+.sale-page .form-control,.sale-page .form-select{min-height:39px;height:39px;border:1px solid #d8e1ee;border-radius:7px;font-size:13px;color:#243650;box-shadow:none}
+.sale-page .form-control:focus,.sale-page .form-select:focus{border-color:#3978f6;box-shadow:0 0 0 3px #3978f61a}
+.sale-page .btn{border-radius:7px;font-size:13px;font-weight:650}
+.sale-page .btn-primary,.create-btn{background:#2868ed;border-color:#2868ed}
+.sale-info-grid{display:grid;grid-template-columns:2fr 1fr;gap:15px}
+.product-add-area{background:#f7f9fe;border:1px solid #e3eaf7;border-radius:9px;padding:13px}
+.product-grid{display:grid;grid-template-columns:minmax(200px,2fr) minmax(130px,1fr) 100px 125px;gap:12px;align-items:start}
+.product-grid>div{min-width:0}
+.product-grid .sale-label{height:18px;margin:0 0 6px;line-height:18px}
+.product-add-column{padding-top:24px}
+.stock-info{min-height:16px;margin-top:5px;color:#74839a;font-size:11px}
+.barcode-panel{padding:14px;background:#f0f7ff;border:1px solid #cfe1ff;border-radius:9px;margin-bottom:14px}
+.barcode-row{display:grid;grid-template-columns:minmax(200px,1fr) auto;gap:10px;align-items:end}
+.barcode-status{font-size:12px;margin-top:7px;min-height:18px;color:#526782}
+.invoice-table{margin:0;font-size:13px}
+.invoice-table thead th{background:#f5f8fd;color:#62718a;font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.45px;white-space:nowrap;border-bottom:1px solid #e4eaf3;padding:11px 13px}
+.invoice-table tbody td{padding:10px 13px;vertical-align:middle;border-bottom:1px solid #eef2f7}
+.product-name{color:#1d3151;font-weight:700}
+.product-sku{color:#8491a5;font-size:12px}
+.size-badge{display:inline-block;min-width:29px;padding:4px 7px;text-align:center;color:#245ed5;background:#edf4ff;border:1px solid #dce9ff;border-radius:5px;font-size:11px;font-weight:750}
+.quantity-input{width:72px;min-height:33px!important;height:33px!important;margin:auto;text-align:center}
+.empty-cart{text-align:center;padding:23px 12px;color:#8a97aa;font-size:13px}
+.billing-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;align-items:stretch}
+.discount-toggle{display:flex;border:1px solid #dce5f2;border-radius:7px;overflow:hidden;margin-bottom:13px}
+.discount-toggle label{flex:1;margin:0;cursor:pointer}
+.discount-toggle label+label{border-left:1px solid #dce5f2}
+.discount-toggle span{display:block;padding:10px 6px;text-align:center;font-size:12px;font-weight:650;color:#53647e}
+.discount-toggle input{margin-right:5px;accent-color:#2868ed}
+.discount-toggle label:has(input:checked){background:#edf4ff}
+.summary-card{border-color:#dbe6f8}
+.summary-card .sale-card-header{background:#f8faff}
+.summary-row{padding:8px 0;color:#687890;font-size:13px}
+.summary-row strong{color:#233653;white-space:nowrap}
+.summary-divider{border:0;border-top:1px solid #e3eaf4;margin:7px 0}
+.grand-total-row{padding:6px 0 10px}
+.grand-total-label{font-size:14px;font-weight:750;color:#233653}
+.grand-total-value{font-size:25px;font-weight:800;color:#2868ed;white-space:nowrap}
+.create-btn{width:100%;min-height:44px;margin-top:7px;font-size:14px!important;font-weight:750!important}
+.section-count{color:#7b8ba4;font-size:11px;font-weight:600}
+@media(max-width:1000px){.product-grid{grid-template-columns:1fr 1fr}.billing-grid{grid-template-columns:1fr}}
+@media(max-width:767px){.sale-page{padding:8px}.sale-heading{font-size:22px}.sale-info-grid,.product-grid,.billing-grid,.barcode-row{grid-template-columns:1fr}.product-add-column{padding-top:0}.sale-card-body{padding:12px}.sale-card-header{padding:11px 12px}.grand-total-value{font-size:22px}}
 </style>
 
 <div class="container-fluid sale-page">
-
     <div class="sale-topbar">
         <div>
             <h2 class="sale-heading">
-                {% if edit_mode %}
-                    Edit Invoice #{{ sale.invoice_number }}
-                {% else %}
-                    New Sale
-                {% endif %}
+                {% if edit_mode %}Edit Invoice #{{ sale.invoice_number }}{% else %}New Sale{% endif %}
             </h2>
-            <p class="sale-description">
-                Create a customer invoice and manage stock by size.
-            </p>
+            <p class="sale-description">Create a customer invoice and manage stock by size.</p>
         </div>
-
-        <a href="{% url 'sale_list' %}" class="btn btn-outline-secondary">
-            ← Back to Sales
-        </a>
+        <a href="{% url 'sale_list' %}" class="btn btn-outline-secondary">← Back to Sales</a>
     </div>
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3">
-                {{ message }}
-            </div>
+            <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
@@ -426,13 +86,11 @@ Do not add a label inside the button column.
           data-edit-mode="{% if edit_mode %}true{% else %}false{% endif %}">
         {% csrf_token %}
 
-        <!-- Customer and payment -->
         <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Sale Information</h5>
                 <span class="section-count">Customer & payment</span>
             </div>
-
             <div class="sale-card-body">
                 <div class="sale-info-grid">
                     <div>
@@ -447,7 +105,6 @@ Do not add a label inside the button column.
                             {% endfor %}
                         </select>
                     </div>
-
                     <div>
                         <label class="sale-label" for="payment_method">Payment Method</label>
                         <select name="payment_method" id="payment_method" class="form-select">
@@ -461,72 +118,82 @@ Do not add a label inside the button column.
             </div>
         </section>
 
-        <!-- Product selection -->
+        {% if not edit_mode %}
+        <section class="sale-card">
+            <div class="sale-card-header">
+                <h5 class="sale-card-title">Barcode Scanner</h5>
+                <span class="section-count">Scan product or size barcode</span>
+            </div>
+            <div class="sale-card-body">
+                <div class="barcode-panel">
+                    <label class="sale-label" for="barcodeInput">Scan barcode</label>
+                    <div class="barcode-row">
+                        <input type="text" id="barcodeInput" class="form-control"
+                               placeholder="Click here, then scan a barcode"
+                               autocomplete="off" autofocus>
+                        <button type="button" id="barcodeScanBtn" class="btn btn-primary">
+                            Add Scanned Item
+                        </button>
+                    </div>
+                    <div id="barcodeStatus" class="barcode-status" role="status" aria-live="polite">
+                        Ready to scan. Size barcodes add the exact size automatically.
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
         <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Add Products</h5>
                 <span class="section-count">Select product, size & quantity</span>
             </div>
-
             <div class="sale-card-body">
                 <div class="product-add-area">
                     <div class="product-grid">
-
                         <div>
                             <label class="sale-label" for="productSelect">Product</label>
                             <select id="productSelect" class="form-select">
                                 <option value="">Select Product</option>
                                 {% for product in products %}
-                                    <option
-                                        value="{{ product.id }}"
-                                        data-price="{{ product.price }}"
-                                        data-sku="{{ product.sku }}"
-                                        data-sizes='[{% for size in product.sizes.all %}{% if not forloop.first %},{% endif %}{"id":"{{ size.id }}","size":"{{ size.size }}","stock":{{ size.stock }}}{% endfor %}]'>
+                                    <option value="{{ product.id }}"
+                                            data-price="{{ product.price }}"
+                                            data-sku="{{ product.sku }}"
+                                            data-name="{{ product.name|escape }}"
+                                            data-barcode="{{ product.barcode|default_if_none:'' }}"
+                                            data-sizes='[{% for size in product.sizes.all %}{% if not forloop.first %},{% endif %}{"id":"{{ size.id }}","size":"{{ size.size|escapejs }}","stock":{{ size.stock }},"barcode":"{{ size.barcode|default_if_none:''|escapejs }}"}{% endfor %}]'>
                                         {{ product.name }} — ₹{{ product.price|floatformat:2 }} — Stock: {{ product.stock }}
                                     </option>
                                 {% endfor %}
                             </select>
-                            <div id="productStockInfo" class="stock-info">
-                                Select a product to see available stock.
-                            </div>
+                            <div id="productStockInfo" class="stock-info">Select a product to see available stock.</div>
                         </div>
-
                         <div>
                             <label class="sale-label" for="sizeSelect">Size</label>
                             <select id="sizeSelect" class="form-select" disabled>
                                 <option value="">Select size</option>
                             </select>
-                            <div id="sizeStockInfo" class="stock-info">
-                                Choose a product first.
-                            </div>
+                            <div id="sizeStockInfo" class="stock-info">Choose a product first.</div>
                         </div>
-
                         <div>
                             <label class="sale-label" for="quantityInput">Quantity</label>
-                            <input type="number" id="quantityInput"
-                                   class="form-control" value="1" min="1">
+                            <input type="number" id="quantityInput" class="form-control" value="1" min="1">
                         </div>
-
-                        <!-- No extra label here: it caused the button to sit lower -->
                         <div class="product-add-column">
-                            <button type="button" id="addProductBtn"
-                                    class="btn btn-primary add-product-btn">
+                            <button type="button" id="addProductBtn" class="btn btn-primary w-100">
                                 + Add Product
                             </button>
                         </div>
-
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Invoice cart -->
         <section class="sale-card">
             <div class="sale-card-header">
                 <h5 class="sale-card-title">Products in Invoice</h5>
                 <span id="cartCount" class="section-count">0 items</span>
             </div>
-
             <div class="table-responsive">
                 <table class="table invoice-table">
                     <thead>
@@ -542,93 +209,44 @@ Do not add a label inside the button column.
                     </thead>
                     <tbody id="invoiceItems"></tbody>
                 </table>
-
-                <div id="emptyCart" class="empty-cart">
-                    No products added yet. Select a product and size above.
-                </div>
+                <div id="emptyCart" class="empty-cart">No products added yet. Select a product and size above.</div>
             </div>
         </section>
 
-        <!-- Discount and summary -->
         <div class="billing-grid">
             <section class="sale-card mb-0">
-                <div class="sale-card-header">
-                    <h5 class="sale-card-title">Discount & Tax</h5>
-                </div>
-
+                <div class="sale-card-header"><h5 class="sale-card-title">Discount & Tax</h5></div>
                 <div class="sale-card-body">
                     <label class="sale-label">Discount Type</label>
-
                     <div class="discount-toggle">
-                        <label>
-                            <span>
-                                <input type="radio" name="discount_type"
-                                       value="PERCENTAGE" checked>
-                                Percentage (%)
-                            </span>
-                        </label>
-
-                        <label>
-                            <span>
-                                <input type="radio" name="discount_type"
-                                       value="AMOUNT">
-                                Fixed Amount (₹)
-                            </span>
-                        </label>
+                        <label><span><input type="radio" name="discount_type" value="PERCENTAGE" checked> Percentage (%)</span></label>
+                        <label><span><input type="radio" name="discount_type" value="AMOUNT"> Fixed Amount (₹)</span></label>
                     </div>
-
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="sale-label" for="discount" id="discountLabel">
-                                Discount (%)
-                            </label>
-                            <input type="number" name="discount" id="discount"
-                                   class="form-control" value="0"
-                                   min="0" step="0.01">
+                            <label class="sale-label" for="discount" id="discountLabel">Discount (%)</label>
+                            <input type="number" name="discount" id="discount" class="form-control" value="0" min="0" step="0.01">
                         </div>
-
                         <div class="col-md-6">
                             <label class="sale-label" for="tax">Tax Amount (₹)</label>
-                            <input type="number" name="tax" id="tax"
-                                   class="form-control" value="0"
-                                   min="0" step="0.01">
+                            <input type="number" name="tax" id="tax" class="form-control" value="0" min="0" step="0.01">
                         </div>
                     </div>
                 </div>
             </section>
 
             <section class="sale-card summary-card mb-0">
-                <div class="sale-card-header">
-                    <h5 class="sale-card-title">Invoice Summary</h5>
-                </div>
-
+                <div class="sale-card-header"><h5 class="sale-card-title">Invoice Summary</h5></div>
                 <div class="sale-card-body">
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <strong id="subtotalDisplay">₹0.00</strong>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Discount</span>
-                        <strong id="discountDisplay">-₹0.00</strong>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Tax</span>
-                        <strong id="taxDisplay">₹0.00</strong>
-                    </div>
-
+                    <div class="summary-row"><span>Subtotal</span><strong id="subtotalDisplay">₹0.00</strong></div>
+                    <div class="summary-row"><span>Discount</span><strong id="discountDisplay">-₹0.00</strong></div>
+                    <div class="summary-row"><span>Tax</span><strong id="taxDisplay">₹0.00</strong></div>
                     <hr class="summary-divider">
-
                     <div class="grand-total-row">
                         <span class="grand-total-label">Grand Total</span>
                         <strong class="grand-total-value" id="grandTotalDisplay">₹0.00</strong>
                     </div>
-
-                    <button type="submit" id="createInvoiceBtn"
-                            class="btn btn-primary create-btn">
-                        Create Invoice
-                    </button>
+                    <button type="submit" id="createInvoiceBtn" class="btn btn-primary create-btn">Create Invoice</button>
                 </div>
             </section>
         </div>
@@ -641,26 +259,18 @@ Do not add a label inside the button column.
 (function () {
     "use strict";
 
-    const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
     const form = $("saleForm");
     const productSelect = $("productSelect");
     const sizeSelect = $("sizeSelect");
     const quantityInput = $("quantityInput");
     const cart = [];
     const editMode = form.dataset.editMode === "true";
+    const money = value => "₹" + Number(value || 0).toFixed(2);
 
-    const money = (value) => "₹" + Number(value || 0).toFixed(2);
-
-    const safe = (value) =>
-        String(value ?? "").replace(/[&<>"']/g, function (character) {
-            return {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;"
-            }[character];
-        });
+    const safe = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[character]));
 
     function selectedOption() {
         return productSelect.options[productSelect.selectedIndex];
@@ -668,20 +278,19 @@ Do not add a label inside the button column.
 
     function sizesForProduct() {
         try {
-            return JSON.parse(selectedOption().dataset.sizes || "[]");
+            return JSON.parse(selectedOption()?.dataset.sizes || "[]");
         } catch (error) {
             return [];
         }
     }
 
-    function updateSizeOptions() {
+    function updateSizeOptions(preferredSizeId = "") {
         const sizes = sizesForProduct();
-
         sizeSelect.innerHTML = '<option value="">Select size</option>';
 
-        sizes.forEach(function (size) {
+        sizes.forEach(size => {
             const option = document.createElement("option");
-            option.value = size.id;
+            option.value = String(size.id);
             option.dataset.stock = size.stock;
             option.textContent = size.size + " — Stock: " + size.stock;
             option.disabled = Number(size.stock) <= 0;
@@ -690,12 +299,8 @@ Do not add a label inside the button column.
 
         sizeSelect.disabled = !productSelect.value || sizes.length === 0;
 
-        const totalStock = sizes.reduce(
-            (total, size) => total + Number(size.stock), 0
-        );
-
         $("productStockInfo").textContent = productSelect.value
-            ? "Total stock: " + totalStock
+            ? "Total stock: " + sizes.reduce((sum, size) => sum + Number(size.stock), 0)
             : "Select a product to see available stock.";
 
         $("sizeStockInfo").textContent = sizes.length
@@ -704,10 +309,14 @@ Do not add a label inside the button column.
 
         quantityInput.value = 1;
         quantityInput.removeAttribute("max");
-        sizeSelect.value = "";
+        sizeSelect.value = preferredSizeId ? String(preferredSizeId) : "";
+
+        if (sizeSelect.value) {
+            sizeSelect.dispatchEvent(new Event("change"));
+        }
     }
 
-    productSelect.addEventListener("change", updateSizeOptions);
+    productSelect.addEventListener("change", () => updateSizeOptions());
 
     sizeSelect.addEventListener("change", function () {
         const option = sizeSelect.options[sizeSelect.selectedIndex];
@@ -719,66 +328,82 @@ Do not add a label inside the button column.
         }
 
         const sizeName = option.textContent.split(" — ")[0];
-
-        $("sizeStockInfo").textContent =
-            "Available stock for " + sizeName + ": " + option.dataset.stock;
-
+        $("sizeStockInfo").textContent = "Available stock for " + sizeName + ": " + option.dataset.stock;
         quantityInput.max = option.dataset.stock;
     });
 
-    $("addProductBtn").addEventListener("click", function () {
-        const productId = productSelect.value;
-        const sizeId = sizeSelect.value;
-        const quantity = Number(quantityInput.value);
-
-        if (!productId) {
-            alert("Please select a product.");
-            return;
-        }
-
-        if (!sizeId) {
-            alert("Please select a size.");
-            return;
-        }
+    function addItem(product, size, quantity = 1) {
+        quantity = Number(quantity);
 
         if (!Number.isInteger(quantity) || quantity < 1) {
-            alert("Quantity must be at least 1.");
-            return;
+            throw new Error("Quantity must be at least 1.");
         }
 
-        const productOption = selectedOption();
-        const sizeOption = sizeSelect.options[sizeSelect.selectedIndex];
-        const stock = Number(sizeOption.dataset.stock || 0);
-        const sizeName = sizeOption.textContent.split(" — ")[0];
+        const productId = String(product.id);
+        const sizeId = String(size.id);
+        const stock = Number(size.stock || 0);
 
-        const existing = cart.find(function (item) {
-            return item.productId === productId && item.sizeId === sizeId;
-        });
+        if (stock <= 0) {
+            throw new Error("This size is out of stock.");
+        }
 
+        const existing = cart.find(item =>
+            item.productId === productId && item.sizeId === sizeId
+        );
         const combinedQuantity = quantity + (existing ? existing.quantity : 0);
 
         if (combinedQuantity > stock) {
-            alert("Only " + stock + " piece(s) available for size " + sizeName + ".");
-            return;
+            throw new Error("Only " + stock + " piece(s) are available for size " + size.name + ".");
         }
 
         if (existing) {
             existing.quantity = combinedQuantity;
         } else {
             cart.push({
-                productId: productId,
-                sizeId: sizeId,
-                productName: productOption.textContent.split(" — ")[0].trim(),
-                sku: productOption.dataset.sku || "",
-                sizeName: sizeName,
-                price: Number(productOption.dataset.price || 0),
-                stock: stock,
-                quantity: quantity
+                productId,
+                sizeId,
+                productName: product.name,
+                sku: product.sku || "",
+                sizeName: size.name,
+                price: Number(product.price || 0),
+                stock,
+                quantity
             });
         }
 
-        quantityInput.value = 1;
         render();
+    }
+
+    $("addProductBtn").addEventListener("click", function () {
+        if (!productSelect.value) {
+            alert("Please select a product.");
+            return;
+        }
+
+        if (!sizeSelect.value) {
+            alert("Please select a size.");
+            return;
+        }
+
+        const productOption = selectedOption();
+        const sizeOption = sizeSelect.options[sizeSelect.selectedIndex];
+
+        try {
+            addItem({
+                id: productSelect.value,
+                name: productOption.dataset.name || productOption.textContent.split(" — ")[0].trim(),
+                sku: productOption.dataset.sku || "",
+                price: productOption.dataset.price
+            }, {
+                id: sizeSelect.value,
+                name: sizeOption.textContent.split(" — ")[0],
+                stock: sizeOption.dataset.stock
+            }, quantityInput.value);
+
+            quantityInput.value = 1;
+        } catch (error) {
+            alert(error.message);
+        }
     });
 
     function render() {
@@ -793,18 +418,11 @@ Do not add a label inside the button column.
                 '<td><span class="product-sku">' + safe(item.sku) + '</span></td>' +
                 '<td><span class="size-badge">' + safe(item.sizeName) + '</span></td>' +
                 '<td class="text-end">' + money(item.price) + '</td>' +
-                '<td class="text-center">' +
-                    '<input type="number" class="form-control quantity-input" ' +
-                    'min="1" max="' + item.stock + '" value="' + item.quantity + '" ' +
-                    'data-index="' + index + '" aria-label="Quantity">' +
-                '</td>' +
-                '<td class="text-end fw-bold">' +
-                    money(item.price * item.quantity) +
-                '</td>' +
-                '<td class="text-center">' +
-                    '<button type="button" class="btn btn-outline-danger btn-sm" ' +
-                    'data-remove="' + index + '">Remove</button>' +
-                '</td>';
+                '<td class="text-center"><input type="number" class="form-control quantity-input" min="1" max="' +
+                item.stock + '" value="' + item.quantity + '" data-index="' + index + '" aria-label="Quantity"></td>' +
+                '<td class="text-end fw-bold">' + money(item.price * item.quantity) + '</td>' +
+                '<td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm" data-remove="' +
+                index + '">Remove</button></td>';
 
             $("invoiceItems").appendChild(row);
 
@@ -822,15 +440,12 @@ Do not add a label inside the button column.
         });
 
         $("emptyCart").style.display = cart.length ? "none" : "block";
-        $("cartCount").textContent =
-            cart.length + (cart.length === 1 ? " item" : " items");
-
+        $("cartCount").textContent = cart.length + (cart.length === 1 ? " item" : " items");
         updateSummary();
     }
 
     $("invoiceItems").addEventListener("change", function (event) {
         const index = event.target.dataset.index;
-
         if (index === undefined) return;
 
         const item = cart[Number(index)];
@@ -848,7 +463,6 @@ Do not add a label inside the button column.
 
     $("invoiceItems").addEventListener("click", function (event) {
         const index = event.target.dataset.remove;
-
         if (index !== undefined) {
             cart.splice(Number(index), 1);
             render();
@@ -856,14 +470,9 @@ Do not add a label inside the button column.
     });
 
     function updateSummary() {
-        const subtotal = cart.reduce(
-            (total, item) => total + item.price * item.quantity, 0
-        );
-
-        const discountType = document.querySelector(
-            'input[name="discount_type"]:checked'
-        ).value;
-
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const selectedDiscount = document.querySelector('input[name="discount_type"]:checked');
+        const discountType = selectedDiscount ? selectedDiscount.value : "PERCENTAGE";
         const rawDiscount = Math.max(0, Number($("discount").value) || 0);
         const tax = Math.max(0, Number($("tax").value) || 0);
 
@@ -877,20 +486,123 @@ Do not add a label inside the button column.
         $("discountDisplay").textContent = "-" + money(discount);
         $("taxDisplay").textContent = money(tax);
         $("grandTotalDisplay").textContent = money(grandTotal);
-
         $("discountLabel").textContent = discountType === "PERCENTAGE"
-            ? "Discount (%)"
-            : "Discount Amount (₹)";
+            ? "Discount (%)" : "Discount Amount (₹)";
     }
 
-    document.querySelectorAll('input[name="discount_type"]').forEach(
-        function (radio) {
-            radio.addEventListener("change", updateSummary);
-        }
-    );
+    document.querySelectorAll('input[name="discount_type"]').forEach(radio => {
+        radio.addEventListener("change", updateSummary);
+    });
 
     $("discount").addEventListener("input", updateSummary);
     $("tax").addEventListener("input", updateSummary);
+
+    // Barcode scanner integration.
+    const barcodeInput = $("barcodeInput");
+    const barcodeStatus = $("barcodeStatus");
+    const barcodeButton = $("barcodeScanBtn");
+    let barcodeBusy = false;
+
+    function setBarcodeStatus(message, isError = false) {
+        if (!barcodeStatus) return;
+        barcodeStatus.textContent = message;
+        barcodeStatus.style.color = isError ? "#b42318" : "#176b3a";
+    }
+
+    async function scanBarcode() {
+        if (!barcodeInput || barcodeBusy) return;
+
+        const barcode = barcodeInput.value.trim();
+        if (!barcode) {
+            setBarcodeStatus("Scan or enter a barcode first.", true);
+            barcodeInput.focus();
+            return;
+        }
+
+        barcodeBusy = true;
+        if (barcodeButton) barcodeButton.disabled = true;
+        setBarcodeStatus("Looking up barcode…");
+
+        try {
+            const url = "{% url 'barcode_lookup' %}" + "?barcode=" + encodeURIComponent(barcode);
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Barcode lookup failed.");
+            }
+
+            const product = data.product;
+
+            if (data.barcode_type === "size") {
+                addItem({
+                    id: product.id,
+                    name: product.name,
+                    sku: product.sku,
+                    price: product.price
+                }, {
+                    id: data.size.id,
+                    name: data.size.name,
+                    stock: data.size.stock
+                }, 1);
+
+                setBarcodeStatus("Added " + product.name + " — size " + data.size.name + ".");
+            } else {
+                const sizes = data.sizes || [];
+                const availableSizes = sizes.filter(size => Number(size.stock) > 0);
+
+                if (!availableSizes.length) {
+                    throw new Error("No sizes are currently in stock for this product.");
+                }
+
+                productSelect.value = String(product.id);
+                updateSizeOptions();
+
+                if (availableSizes.length === 1) {
+                    addItem({
+                        id: product.id,
+                        name: product.name,
+                        sku: product.sku,
+                        price: product.price
+                    }, {
+                        id: availableSizes[0].id,
+                        name: availableSizes[0].name,
+                        stock: availableSizes[0].stock
+                    }, 1);
+
+                    sizeSelect.value = String(availableSizes[0].id);
+                    sizeSelect.dispatchEvent(new Event("change"));
+                    setBarcodeStatus("Added " + product.name + " — size " + availableSizes[0].name + ".");
+                } else {
+                    setBarcodeStatus("Product found: " + product.name + ". Select a size, then click Add Product.");
+                    sizeSelect.focus();
+                }
+            }
+
+            barcodeInput.value = "";
+        } catch (error) {
+            setBarcodeStatus(error.message || "Unable to process this barcode.", true);
+        } finally {
+            barcodeBusy = false;
+            if (barcodeButton) barcodeButton.disabled = false;
+            if (barcodeInput) barcodeInput.focus();
+        }
+    }
+
+    if (barcodeInput && barcodeButton) {
+        barcodeButton.addEventListener("click", scanBarcode);
+
+        barcodeInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                scanBarcode();
+            }
+        });
+    }
 
     form.addEventListener("submit", function (event) {
         if (editMode) {

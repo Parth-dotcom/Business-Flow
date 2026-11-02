@@ -1,9 +1,9 @@
-
 from django.urls import path
 
 from .sale_list_view import sale_list
 from .sale_search import sale_search
 from .whatsapp import sale_whatsapp
+from .barcode_lookup import barcode_lookup
 from .views import (
     sale_detail,
     sale_pdf,
@@ -28,6 +28,11 @@ urlpatterns = [
         "new/",
         new_sale,
         name="new_sale",
+    ),
+    path(
+        "barcode-lookup/",
+        barcode_lookup,
+        name="barcode_lookup",
     ),
     path(
         "<int:pk>/edit/",

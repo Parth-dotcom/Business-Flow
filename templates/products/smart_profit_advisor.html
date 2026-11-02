@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Smart Profit Advisor | Ananta Aura{% endblock %}
+{% block page_title %}Smart Profit Advisor{% endblock %}
+
+{% block extra_css %}
+<style>
+    .advisor-page {
+        color: #1f2937;
+    }
+
+    .advisor-hero {
+        padding: 26px 28px;
+        border-radius: 18px;
+        color: #fff;
+        background: linear-gradient(135deg, #243b53 0%, #345b63 55%, #4d776c 100%);
+        box-shadow: 0 12px 28px rgba(31, 41, 55, .12);
+        margin-bottom: 22px;
+    }
+
+    .advisor-hero h2 {
+        margin: 0 0 8px;
+        font-size: clamp(22px, 3vw, 30px);
+        font-weight: 700;
+    }
+
+    .advisor-hero p {
+        margin: 0;
+        color: rgba(255, 255, 255, .82);
+        max-width: 760px;
+    }
+
+    .advisor-card {
+        background: #fff;
+        border: 1px solid #e8edf2;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, .04);
+        height: 100%;
+    }
+
+    .advisor-card-header {
+        padding: 19px 22px;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .advisor-card-header h5 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .advisor-card-body {
+        padding: 22px;
+    }
+
+    .advisor-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #4b5563;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .advisor-page .form-control,
+    .advisor-page .form-select {
+        min-height: 44px;
+        border-radius: 9px;
+        border-color: #d9e0e7;
+    }
+
+    .advisor-page .form-control:focus,
+    .advisor-page .form-select:focus {
+        border-color: #668d83;
+        box-shadow: 0 0 0 .2rem rgba(77, 119, 108, .13);
+    }
+
+    .metric-card {
+        padding: 19px;
+        border-radius: 13px;
+        background: #f8fafb;
+        border: 1px solid #edf0f4;
+        height: 100%;
+    }
+
+    .metric-label {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .045em;
+    }
+
+    .metric-value {
+        margin-top: 8px;
+        font-size: clamp(20px, 2.2vw, 27px);
+        font-weight: 800;
+        color: #1f2937;
+        overflow-wrap: anywhere;
+    }
+
+    .metric-sub {
+        color: #64748b;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .metric-highlight {
+        background: #edf7f1;
+        border-color: #d7ebdf;
+    }
+
+    .metric-highlight .metric-value {
+        color: #17603b;
+    }
+
+    .cost-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f2f5;
+        font-size: 14px;
+    }
+
+    .cost-row:last-child {
+        border-bottom: 0;
+    }
+
+    .cost-row span:first-child {
+        color: #64748b;
+    }
+
+    .cost-row strong {
+        text-align: right;
+    }
+
+    .cost-total {
+        padding-top: 15px;
+        margin-top: 4px;
+        border-top: 2px solid #e5eaf0;
+        font-size: 16px;
+    }
+
+    .status-box {
+        border-radius: 12px;
+        padding: 15px 17px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .status-profit {
+        background: #eaf7ef;
+        color: #17603b;
+        border: 1px solid #ccebd7;
+    }
+
+    .status-loss {
+        background: #fff0ef;
+        color: #a12622;
+        border: 1px solid #ffd4d1;
+    }
+
+    .status-break-even {
+        background: #fff7e6;
+        color: #8a5700;
+        border: 1px solid #f7dfaa;
+    }
+
+    .advisor-help {
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    .advisor-button {
+        min-height: 44px;
+        border-radius: 9px;
+        font-weight: 700;
+    }
+
+    .advisor-divider {
+        border: 0;
+        border-top: 1px solid #edf0f4;
+        margin: 20px 0;
+    }
+
+    @media (max-width: 576px) {
+        .advisor-hero {
+            padding: 22px 19px;
+        }
+
+        .advisor-card-body {
+            padding: 17px;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="advisor-page">
+
+    <!-- PAGE HEADER -->
+    <section class="advisor-hero">
+        <h2>
+            <i class="bi bi-lightbulb-fill me-2"></i>
+            Smart Profit Advisor
+        </h2>
+
+        <p>
+            Review the full unit cost of a product, set a target profit
+            margin, and check how discounts affect your estimated profit
+            before you change a price.
+        </p>
+    </section>
+
+
+    {% if not products %}
+
+        <div class="alert alert-warning">
+            <strong>No active products found.</strong>
+
+            Add a product and enter its purchase and additional costs
+            before using the Smart Profit Advisor.
+
+            <a href="{% url 'product_create' %}" class="alert-link">
+                Add a product
+            </a>
+        </div>
+
+    {% else %}
+
+    <form method="get" id="profitAdvisorForm">
+
+        <div class="row g-4">
+
+            <!-- PRODUCT AND COST DETAILS -->
+            <div class="col-12 col-xl-5">
+
+                <section class="advisor-card">
+
+                    <div class="advisor-card-header">
+                        <h5>
+                            <i class="bi bi-box-seam me-2"></i>
+                            Product &amp; Target Margin
+                        </h5>
+                    </div>
+
+                    <div class="advisor-card-body">
+
+                        <label class="advisor-label" for="productSelect">
+                            Select Product
+                        </label>
+
+                        <select
+                            class="form-select mb-3"
+                            name="product"
+                            id="productSelect"
+                        >
+                            {% for product in products %}
+                                <option
+                                    value="{{ product.pk }}"
+                                    {% if selected_product and product.pk == selected_product.pk %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ product.name }} — {{ product.sku }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+
+                        {% if selected_product %}
+
+                            <div class="small text-muted mb-3">
+                                Category:
+                                <strong>
+                                    {{ selected_product.category.name }}
+                                </strong>
+
+                                <br>
+
+                                Current Selling Price:
+                                <strong>
+                                    ₹{{ current_price|floatformat:2 }}
+                                </strong>
+                            </div>
+
+                        {% endif %}
+
+
+                        <label class="advisor-label" for="marginInput">
+                            Target Profit Margin (%)
+                        </label>
+
+                        <div class="input-group mb-2">
+
+                            <input
+                                class="form-control"
+                                type="number"
+                                name="margin"
+                                id="marginInput"
+                                min="0"
+                                max="99.99"
+                                step="0.01"
+                                value="{{ margin_input }}"
+                                required
+                            >
+
+                            <span class="input-group-text">%</span>
+
+                        </div>
+
+                        <div class="advisor-help mb-3">
+                            Margin is calculated as a percentage of the
+                            suggested selling price, not as a percentage
+                            added to cost.
+                        </div>
+
+
+                        {% if margin_error %}
+                            <div class="text-danger small mb-3">
+                                {{ margin_error }}
+                            </div>
+                        {% endif %}
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-success advisor-button w-100"
+                        >
+                            <i class="bi bi-calculator me-2"></i>
+                            Calculate Price
+                        </button>
+
+
+                        <hr class="advisor-divider">
+
+
+                        <h6 class="fw-bold mb-2">
+                            Unit Cost Breakdown
+                        </h6>
+
+                        <div class="cost-row">
+                            <span>Purchase Cost</span>
+                            <strong>
+                                ₹{{ purchase_cost|floatformat:2 }}
+                            </strong>
+                        </div>
+
+                        <div class="cost-row">
+                            <span>Transportation</span>
+                            <strong>
+                                ₹{{ transportation_cost|floatformat:2 }}
+                            </strong>
+                        </div>
+
+                        <div class="cost-row">
+                            <span>Packaging</span>
+                            <strong>
+                                ₹{{ packaging_cost|floatformat:2 }}
+                            </strong>
+                        </div>
+
+                        <div class="cost-row">
+                            <span>Other Expenses</span>
+                            <strong>
+                                ₹{{ other_cost|floatformat:2 }}
+                            </strong>
+                        </div>
+
+                        <div class="cost-row cost-total">
+                            <span>
+                                <strong>True Unit Cost</strong>
+                            </span>
+
+                            <strong>
+                                ₹{{ true_unit_cost|floatformat:2 }}
+                            </strong>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+
+
+            <!-- PRICING AND DISCOUNT CALCULATOR -->
+            <div class="col-12 col-xl-7">
+
+                <!-- SUGGESTED PRICE -->
+                <section class="advisor-card mb-4">
+
+                    <div class="advisor-card-header">
+                        <h5>
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+                            Recommended Pricing
+                        </h5>
+                    </div>
+
+                    <div class="advisor-card-body">
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-6">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        True Unit Cost
+                                    </div>
+
+                                    <div class="metric-value">
+                                        ₹{{ true_unit_cost|floatformat:2 }}
+                                    </div>
+
+                                    <div class="metric-sub">
+                                        Total estimated cost for one unit
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-12 col-md-6">
+
+                                <div class="metric-card metric-highlight">
+
+                                    <div class="metric-label">
+                                        Suggested Selling Price
+                                    </div>
+
+                                    <div class="metric-value">
+                                        ₹{{ suggested_price|floatformat:2 }}
+                                    </div>
+
+                                    <div class="metric-sub">
+                                        For a
+                                        {{ margin_percent|floatformat:2 }}%
+                                        target margin
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if true_unit_cost <= 0 %}
+
+                            <div class="alert alert-warning mt-3 mb-0">
+                                Your recorded true unit cost is ₹0.00 or
+                                less. Enter accurate cost values for a
+                                meaningful price recommendation.
+                            </div>
+
+                        {% endif %}
+
+
+                        <p class="advisor-help mt-3 mb-0">
+                            This is an estimate based on the cost fields
+                            currently recorded for the selected product.
+                            It does not automatically change the product's
+                            selling price.
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <!-- DISCOUNT CALCULATOR -->
+                <section class="advisor-card">
+
+                    <div class="advisor-card-header">
+                        <h5>
+                            <i class="bi bi-percent me-2"></i>
+                            Discount &amp; Profit Checker
+                        </h5>
+                    </div>
+
+                    <div class="advisor-card-body">
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    class="advisor-label"
+                                    for="discountType"
+                                >
+                                    Discount Type
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="discount_type"
+                                    id="discountType"
+                                >
+                                    <option
+                                        value="percentage"
+                                        {% if discount_type == "percentage" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Percentage (%)
+                                    </option>
+
+                                    <option
+                                        value="fixed"
+                                        {% if discount_type == "fixed" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Fixed Amount (₹)
+                                    </option>
+                                </select>
+
+                            </div>
+
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    class="advisor-label"
+                                    for="discountInput"
+                                >
+                                    Discount Value
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span
+                                        class="input-group-text"
+                                        id="discountPrefix"
+                                    >
+                                        {% if discount_type == "fixed" %}
+                                            ₹
+                                        {% else %}
+                                            %
+                                        {% endif %}
+                                    </span>
+
+                                    <input
+                                        class="form-control"
+                                        type="number"
+                                        name="discount"
+                                        id="discountInput"
+                                        min="0"
+                                        step="0.01"
+                                        value="{{ discount_input }}"
+                                        required
+                                    >
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if discount_error %}
+                            <div class="text-danger small mt-2">
+                                {{ discount_error }}
+                            </div>
+                        {% endif %}
+
+
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-12 col-md-6">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Price After Discount
+                                    </div>
+
+                                    <div class="metric-value">
+                                        ₹{{ discounted_price|floatformat:2 }}
+                                    </div>
+
+                                    <div class="metric-sub">
+                                        Current price less discount
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-12 col-md-6">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Estimated Profit / Loss
+                                    </div>
+
+                                    <div class="metric-value">
+                                        ₹{{ estimated_profit|floatformat:2 }}
+                                    </div>
+
+                                    <div class="metric-sub">
+                                        Estimated Margin:
+                                        {{ discounted_margin|floatformat:2 }}%
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PROFIT STATUS -->
+                        <div
+                            class="status-box mt-3
+                            {% if profit_status == 'loss' %}
+                                status-loss
+                            {% elif profit_status == 'break_even' %}
+                                status-break-even
+                            {% else %}
+                                status-profit
+                            {% endif %}"
+                        >
+
+                            {% if profit_status == "loss" %}
+
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                            {% elif profit_status == "break_even" %}
+
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>
+
+                            {% else %}
+
+                                <i class="bi bi-check-circle-fill me-2"></i>
+
+                            {% endif %}
+
+                            {{ profit_message }}
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-success advisor-button w-100 mt-3"
+                        >
+                            <i class="bi bi-arrow-repeat me-2"></i>
+                            Recalculate Discount
+                        </button>
+
+
+                        <p class="advisor-help mt-3 mb-0">
+                            Discount checks use the product's current
+                            selling price. Calculations are estimates and
+                            exclude taxes or costs not entered above.
+                        </p>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </div>
+
+    </form>
+
+    {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const productSelect = document.getElementById("productSelect");
+    const discountType = document.getElementById("discountType");
+    const discountPrefix = document.getElementById("discountPrefix");
+    const discountInput = document.getElementById("discountInput");
+    const form = document.getElementById("profitAdvisorForm");
+
+
+    // Load calculations for the selected product.
+    if (productSelect && form) {
+        productSelect.addEventListener("change", function () {
+            form.submit();
+        });
+    }
+
+
+    // Update the discount symbol when the discount type changes.
+    function updateDiscountInput() {
+
+        if (!discountType || !discountPrefix || !discountInput) {
+            return;
+        }
+
+        if (discountType.value === "fixed") {
+
+            discountPrefix.textContent = "₹";
+            discountInput.removeAttribute("max");
+
+        } else {
+
+            discountPrefix.textContent = "%";
+            discountInput.max = "100";
+
+        }
+    }
+
+
+    if (discountType) {
+        discountType.addEventListener("change", updateDiscountInput);
+        updateDiscountInput();
+    }
+
+});
+</script>
+{% endblock %}

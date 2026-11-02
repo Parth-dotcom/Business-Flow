@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}
@@ -7,99 +6,475 @@
 
 {% block content %}
 <style>
-.product-form-page{max-width:1150px;margin:auto}
-.product-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 3px 12px #00000008;overflow:hidden;margin-bottom:24px}
-.product-card-header{padding:20px 24px;border-bottom:1px solid #edf0f2}
-.product-card-body{padding:24px}
-.section-description{color:#6b7280;font-size:14px;margin:5px 0 0}
-.form-label{font-weight:600;color:#374151}
-.form-control,.form-select{min-height:43px;border-radius:8px}
-textarea.form-control{min-height:100px}
-.size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.size-option{display:flex;align-items:center;gap:8px;border:1px solid #d8dee7;border-radius:10px;padding:10px;background:#fff;min-width:0}
-.size-option:has(input:checked){border-color:#2563eb;background:#eff6ff}
-.size-option input{width:17px;height:17px;flex-shrink:0}
-.size-option-label{flex:1;overflow-wrap:anywhere;font-weight:600;color:#374151}
-.remove-size{border:0;background:#fee2e2;color:#b91c1c;border-radius:6px;padding:4px 8px;font-size:12px;white-space:nowrap}
-.remove-size:hover{background:#fecaca}
-.stock-section{display:none;margin-top:28px;padding-top:24px;border-top:1px solid #edf0f2}
-.stock-section.visible{display:block}
-.stock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
-.stock-card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff}
-.stock-card[hidden]{display:none!important}
-.stock-size-label{display:block;font-weight:600;margin-bottom:10px;color:#374151}
-.stock-total{margin-top:20px;padding:18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.stock-total strong{font-size:24px;color:#1d4ed8}
-.form-error{color:#dc2626;font-size:13px;margin-top:5px}
-.custom-size-panel{margin-top:22px;padding:18px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px}
-@media(max-width:768px){.size-options{grid-template-columns:repeat(2,minmax(0,1fr))}.stock-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-card-body{padding:18px}.product-card-header{padding:18px}}
-@media(max-width:420px){.size-options,.stock-grid{grid-template-columns:1fr}}
+.product-form-page {
+    max-width: 1150px;
+    margin: auto;
+}
+
+.product-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px #00000008;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.product-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.product-card-body {
+    padding: 24px;
+}
+
+.section-description {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 5px 0 0;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control,
+.form-select {
+    min-height: 43px;
+    border-radius: 8px;
+}
+
+textarea.form-control {
+    min-height: 100px;
+}
+
+.field-help {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.size-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.size-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #d8dee7;
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
+    min-width: 0;
+}
+
+.size-option:has(input:checked) {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.size-option input {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+.size-option-label {
+    flex: 1;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    color: #374151;
+}
+
+.remove-size {
+    border: 0;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.remove-size:hover {
+    background: #fecaca;
+}
+
+.stock-section {
+    display: none;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #edf0f2;
+}
+
+.stock-section.visible {
+    display: block;
+}
+
+.stock-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.stock-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+}
+
+.stock-card[hidden] {
+    display: none !important;
+}
+
+.stock-size-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #374151;
+}
+
+.stock-total {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.stock-total strong {
+    font-size: 24px;
+    color: #1d4ed8;
+}
+
+.custom-size-panel {
+    margin-top: 22px;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+}
+
+/* Profit calculator */
+
+.profit-card {
+    border: 1px solid #bfdbfe;
+    background: #f8fbff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 22px;
+}
+
+.profit-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 5px;
+}
+
+.profit-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.profit-metric {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.profit-metric-label {
+    color: #6b7280;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.profit-metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1d4ed8;
+    overflow-wrap: anywhere;
+}
+
+.profit-status {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.profit-status.profit {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.profit-status.loss {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.profit-status.break-even {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.profit-note {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+    .size-options,
+    .stock-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profit-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .product-card-body,
+    .product-card-header {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 420px) {
+    .size-options,
+    .stock-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 <div class="container-fluid py-4">
 <div class="product-form-page">
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
-            <h2 class="mb-1">{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}</h2>
-            <p class="text-muted mb-0">Manage product details and size-wise inventory.</p>
+            <h2 class="mb-1">
+                {% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}
+            </h2>
+            <p class="text-muted mb-0">
+                Manage product details, costs, pricing and size-wise inventory.
+            </p>
         </div>
-        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Back to Products</a>
+
+        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
+            Back to Products
+        </a>
     </div>
 
     {% if form.non_field_errors %}
-    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
     {% endif %}
 
     <form method="post" id="productForm">
         {% csrf_token %}
 
+        <!-- Product information -->
+
         <div class="product-card">
             <div class="product-card-header">
                 <h5 class="mb-1">Product Details</h5>
-                <p class="section-description">Enter the basic information for your product.</p>
+                <p class="section-description">
+                    Enter the basic information for your product.
+                </p>
             </div>
+
             <div class="product-card-body">
                 <div class="row g-4">
+
                     {% for field in form %}
                         {% if field.name != "sizes" and not field.name|slice:":6" == "stock_" %}
-                        <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %}">
-                            {% if field.name == "is_active" %}
-                            <div class="form-check mt-2">
-                                {{ field }}
-                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            </div>
-                            {% else %}
-                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
+
+                            {% if field.name == "price" %}
+                                <div class="col-12">
+                                    <div class="profit-card">
+                                        <div class="profit-card-title">
+                                            Smart Profit Advisor
+                                        </div>
+                                        <p class="section-description">
+                                            Enter your selling price and expenses
+                                            to estimate your profit per item.
+                                        </p>
+                                    </div>
+                                </div>
                             {% endif %}
-                            {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
-                        </div>
+
+                            {% if field.name == "transportation_cost" or field.name == "packaging_cost" or field.name == "other_cost" %}
+                                {% if field.name == "transportation_cost" %}
+                                    <div class="col-12">
+                                        <h6 class="mb-0">Additional Expenses</h6>
+                                        <p class="section-description">
+                                            Enter the expense for one unit, not the
+                                            total expense for the entire shipment.
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %}">
+
+                                {% if field.name == "is_active" %}
+                                    <div class="form-check mt-2">
+                                        {{ field }}
+                                        <label
+                                            class="form-check-label"
+                                            for="{{ field.id_for_label }}"
+                                        >
+                                            {{ field.label }}
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <label
+                                        class="form-label"
+                                        for="{{ field.id_for_label }}"
+                                    >
+                                        {{ field.label }}
+                                    </label>
+
+                                    {{ field }}
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                    <small class="field-help">
+                                        {{ field.help_text }}
+                                    </small>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+
+                            </div>
                         {% endif %}
                     {% endfor %}
+
                 </div>
+
+                <!-- Live profit preview -->
+
+                <div class="profit-card">
+                    <div class="profit-card-title">
+                        Estimated Profit Breakdown
+                    </div>
+
+                    <p class="section-description">
+                        This preview updates when you change the price or costs.
+                    </p>
+
+                    <div class="profit-metrics">
+
+                        <div class="profit-metric">
+                            <div class="profit-metric-label">
+                                True Cost Per Unit
+                            </div>
+                            <div class="profit-metric-value" id="trueCost">
+                                ₹0.00
+                            </div>
+                        </div>
+
+                        <div class="profit-metric">
+                            <div class="profit-metric-label">
+                                Estimated Profit Per Unit
+                            </div>
+                            <div class="profit-metric-value" id="estimatedProfit">
+                                ₹0.00
+                            </div>
+                        </div>
+
+                        <div class="profit-metric">
+                            <div class="profit-metric-label">
+                                Estimated Profit Margin
+                            </div>
+                            <div class="profit-metric-value" id="profitMargin">
+                                0.00%
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="profitStatus" class="profit-status">
+                        Enter your selling price and costs to calculate profit.
+                    </div>
+
+                    <div class="profit-note">
+                        Estimate only. This preview does not include taxes,
+                        payment fees, discounts, or other selling expenses
+                        unless you account for them separately.
+                    </div>
+                </div>
+
             </div>
         </div>
+
+        <!-- Size selection and inventory -->
 
         <div class="product-card">
             <div class="product-card-header">
                 <h5 class="mb-1">Available Sizes</h5>
-                <p class="section-description">Select sizes for this product. Use Remove to take a size out of this chart.</p>
+                <p class="section-description">
+                    Select sizes for this product. Use Remove to take a size
+                    out of this chart.
+                </p>
             </div>
 
             <div class="product-card-body">
+
                 <div id="sizeOptions" class="size-options">
                     {% for size, label in form.fields.sizes.choices %}
-                    <div class="size-option" data-size-option="{{ size }}">
-                        <input
-                            type="checkbox"
-                            name="sizes"
-                            value="{{ size }}"
-                            id="id_size_{{ forloop.counter }}"
-                            {% if size in form.sizes.value %}checked{% endif %}
-                        >
-                        <label class="size-option-label" for="id_size_{{ forloop.counter }}">{{ label }}</label>
-                        <button type="button" class="remove-size" data-remove-size="{{ size }}" aria-label="Remove size {{ label }}">× Remove</button>
-                    </div>
+                        <div class="size-option" data-size-option="{{ size }}">
+                            <input
+                                type="checkbox"
+                                name="sizes"
+                                value="{{ size }}"
+                                id="id_size_{{ forloop.counter }}"
+                                {% if size in form.sizes.value %}checked{% endif %}
+                            >
+
+                            <label
+                                class="size-option-label"
+                                for="id_size_{{ forloop.counter }}"
+                            >
+                                {{ label }}
+                            </label>
+
+                            <button
+                                type="button"
+                                class="remove-size"
+                                data-remove-size="{{ size }}"
+                                aria-label="Remove size {{ label }}"
+                            >
+                                × Remove
+                            </button>
+                        </div>
                     {% endfor %}
                 </div>
 
@@ -108,39 +483,88 @@ textarea.form-control{min-height:100px}
                 {% endfor %}
 
                 <div class="custom-size-panel">
-                    <label class="form-label" for="customSizeInput">Add a custom size</label>
-                    <p class="section-description mb-3">Examples: 9XL, FREE SIZE, PETITE, CUSTOM 40.</p>
+                    <label class="form-label" for="customSizeInput">
+                        Add a custom size
+                    </label>
+
+                    <p class="section-description mb-3">
+                        Examples: 9XL, FREE SIZE, PETITE, CUSTOM 40.
+                    </p>
+
                     <div class="d-flex flex-wrap gap-2">
-                        <input type="text" id="customSizeInput" class="form-control flex-grow-1" style="min-width:180px" maxlength="30" placeholder="Enter custom size">
-                        <button type="button" id="addSizeButton" class="btn btn-outline-primary">+ Add Size</button>
+                        <input
+                            type="text"
+                            id="customSizeInput"
+                            class="form-control flex-grow-1"
+                            style="min-width:180px"
+                            maxlength="30"
+                            placeholder="Enter custom size"
+                        >
+
+                        <button
+                            type="button"
+                            id="addSizeButton"
+                            class="btn btn-outline-primary"
+                        >
+                            + Add Size
+                        </button>
                     </div>
-                    <div id="customSizeError" class="form-error" role="alert"></div>
+
+                    <div
+                        id="customSizeError"
+                        class="form-error"
+                        role="alert"
+                    ></div>
                 </div>
 
                 <div id="stockSection" class="stock-section">
                     <h6 class="mb-1">Stock Quantity by Size</h6>
-                    <p class="section-description">Enter the quantity available for each selected size.</p>
+
+                    <p class="section-description">
+                        Enter the quantity available for each selected size.
+                    </p>
+
                     <div id="stockGrid" class="stock-grid">
                         {% for row in form.size_rows %}
-                        <div class="stock-card" data-stock-size="{{ row.size }}" hidden>
-                            <label class="stock-size-label" for="{{ row.field.id_for_label }}">{{ row.label }} Stock</label>
-                            {{ row.field }}
-                            {% for error in row.field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
-                        </div>
+                            <div
+                                class="stock-card"
+                                data-stock-size="{{ row.size }}"
+                                hidden
+                            >
+                                <label
+                                    class="stock-size-label"
+                                    for="{{ row.field.id_for_label }}"
+                                >
+                                    {{ row.label }} Stock
+                                </label>
+
+                                {{ row.field }}
+
+                                {% for error in row.field.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            </div>
                         {% endfor %}
                     </div>
+
                     <div class="stock-total">
                         <div>
                             <div class="fw-semibold">Total Product Stock</div>
-                            <div class="section-description">Sum of selected size quantities</div>
+                            <div class="section-description">
+                                Sum of selected size quantities
+                            </div>
                         </div>
+
                         <strong id="totalStock">0</strong>
                     </div>
                 </div>
 
                 <div class="alert alert-info mt-4 mb-0">
-                    <strong>Note:</strong> A size with stock remaining or a linked sale cannot be removed. This protects your inventory and billing history.
+                    <strong>Note:</strong>
+                    A size with stock remaining or a linked sale cannot be
+                    removed. This protects your inventory and billing history.
                 </div>
+
             </div>
         </div>
 
@@ -148,14 +572,112 @@ textarea.form-control{min-height:100px}
             <button type="submit" class="btn btn-primary px-4">
                 {% if form.instance.pk %}Save Changes{% else %}Add Product{% endif %}
             </button>
-            <a href="{% url 'product_list' %}" class="btn btn-light border px-4">Cancel</a>
+
+            <a href="{% url 'product_list' %}" class="btn btn-light border px-4">
+                Cancel
+            </a>
         </div>
+
     </form>
 </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    /* --------------------------------
+       Smart Profit Advisor
+    -------------------------------- */
+
+    const priceInput = document.getElementById("id_price");
+    const purchaseInput = document.getElementById("id_cost_price");
+    const transportInput = document.getElementById("id_transportation_cost");
+    const packagingInput = document.getElementById("id_packaging_cost");
+    const otherInput = document.getElementById("id_other_cost");
+
+    const trueCostDisplay = document.getElementById("trueCost");
+    const profitDisplay = document.getElementById("estimatedProfit");
+    const marginDisplay = document.getElementById("profitMargin");
+    const statusDisplay = document.getElementById("profitStatus");
+
+    function numberValue(input) {
+        if (!input || input.value.trim() === "") {
+            return 0;
+        }
+
+        const value = Number(input.value);
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function formatRupees(value) {
+        return "₹" + value.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function updateProfitPreview() {
+        const sellingPrice = numberValue(priceInput);
+        const purchaseCost = numberValue(purchaseInput);
+        const transportationCost = numberValue(transportInput);
+        const packagingCost = numberValue(packagingInput);
+        const otherCost = numberValue(otherInput);
+
+        const trueCost =
+            purchaseCost +
+            transportationCost +
+            packagingCost +
+            otherCost;
+
+        const profit = sellingPrice - trueCost;
+
+        const margin = sellingPrice > 0
+            ? (profit / sellingPrice) * 100
+            : 0;
+
+        trueCostDisplay.textContent = formatRupees(trueCost);
+        profitDisplay.textContent = formatRupees(profit);
+        marginDisplay.textContent = margin.toFixed(2) + "%";
+
+        statusDisplay.className = "profit-status";
+
+        if (sellingPrice <= 0) {
+            statusDisplay.textContent =
+                "Enter a selling price greater than ₹0 to calculate profit.";
+        } else if (profit < -0.000001) {
+            statusDisplay.classList.add("loss");
+            statusDisplay.textContent =
+                "Loss warning: your selling price is below the true unit cost.";
+        } else if (Math.abs(profit) <= 0.000001) {
+            statusDisplay.classList.add("break-even");
+            statusDisplay.textContent =
+                "Break-even: your selling price covers the listed unit costs, but generates no profit.";
+        } else {
+            statusDisplay.classList.add("profit");
+            statusDisplay.textContent =
+                "Profitable price: estimated profit is " +
+                formatRupees(profit) +
+                " per unit.";
+        }
+    }
+
+    [
+        priceInput,
+        purchaseInput,
+        transportInput,
+        packagingInput,
+        otherInput
+    ].forEach(function (input) {
+        if (input) {
+            input.addEventListener("input", updateProfitPreview);
+        }
+    });
+
+    updateProfitPreview();
+
+    /* --------------------------------
+       Size-wise inventory
+    -------------------------------- */
+
     const sizeOptions = document.getElementById("sizeOptions");
     const stockGrid = document.getElementById("stockGrid");
     const stockSection = document.getElementById("stockSection");
@@ -173,13 +695,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function findCheckbox(size) {
-        return Array.from(sizeOptions.querySelectorAll('input[name="sizes"]'))
-            .find(input => input.value === size);
+        return Array.from(
+            sizeOptions.querySelectorAll('input[name="sizes"]')
+        ).find(function (input) {
+            return input.value === size;
+        });
     }
 
     function findCard(size) {
-        return Array.from(stockGrid.querySelectorAll("[data-stock-size]"))
-            .find(card => card.dataset.stockSize === size);
+        return Array.from(
+            stockGrid.querySelectorAll("[data-stock-size]")
+        ).find(function (card) {
+            return card.dataset.stockSize === size;
+        });
     }
 
     function createCard(size) {
@@ -206,7 +734,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         card.append(label, input);
         stockGrid.appendChild(card);
+
         input.addEventListener("input", updateStock);
+
         return card;
     }
 
@@ -219,7 +749,8 @@ document.addEventListener("DOMContentLoaded", function () {
         checkbox.type = "checkbox";
         checkbox.name = "sizes";
         checkbox.value = size;
-        checkbox.id = "id_custom_" + size.replace(/[^A-Z0-9_-]/g, "_");
+        checkbox.id = "id_custom_" +
+            size.replace(/[^A-Z0-9_-]/g, "_");
         checkbox.checked = true;
 
         const label = document.createElement("label");
@@ -232,15 +763,20 @@ document.addEventListener("DOMContentLoaded", function () {
         removeButton.className = "remove-size";
         removeButton.dataset.removeSize = size;
         removeButton.textContent = "× Remove";
-        removeButton.setAttribute("aria-label", "Remove size " + size);
+        removeButton.setAttribute(
+            "aria-label",
+            "Remove size " + size
+        );
 
         wrapper.append(checkbox, label, removeButton);
         sizeOptions.appendChild(wrapper);
+
         return checkbox;
     }
 
     function addSize() {
         errorDisplay.textContent = "";
+
         const size = normalizeSize(sizeInput.value);
 
         if (!size) {
@@ -248,8 +784,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (size.length > 30 || !/^[A-Z0-9 _-]+$/.test(size)) {
-            errorDisplay.textContent = "Use up to 30 characters: letters, numbers, spaces or hyphens.";
+        if (
+            size.length > 30 ||
+            !/^[A-Z0-9 _-]+$/.test(size)
+        ) {
+            errorDisplay.textContent =
+                "Use up to 30 characters: letters, numbers, spaces or hyphens.";
             return;
         }
 
@@ -257,6 +797,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (checkbox) {
             checkbox.checked = true;
+
+            const wrapper = checkbox.closest(".size-option");
+            if (wrapper) {
+                wrapper.hidden = false;
+            }
         } else {
             checkbox = addSizeOption(size);
         }
@@ -271,15 +816,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function removeSize(size) {
         const checkbox = findCheckbox(size);
-        if (!checkbox) return;
 
-        // Uncheck it so the server can validate stock and sale references.
+        if (!checkbox) {
+            return;
+        }
+
         checkbox.checked = false;
 
-        // Keep the checkbox in the form submission as unchecked.
-        // Hiding the option makes it disappear from the visible chart.
         const option = checkbox.closest(".size-option");
-        if (option) option.remove();
+
+        if (option) {
+            option.remove();
+        }
 
         updateStock(checkbox);
     }
@@ -288,10 +836,15 @@ document.addEventListener("DOMContentLoaded", function () {
         let total = 0;
         let count = 0;
 
-        sizeOptions.querySelectorAll('input[name="sizes"]').forEach(function (checkbox) {
+        sizeOptions.querySelectorAll(
+            'input[name="sizes"]'
+        ).forEach(function (checkbox) {
             const size = checkbox.value;
             let card = findCard(size);
-            if (!card) card = createCard(size);
+
+            if (!card) {
+                card = createCard(size);
+            }
 
             const input = card.querySelector("input");
             const selected = checkbox.checked;
@@ -300,13 +853,24 @@ document.addEventListener("DOMContentLoaded", function () {
             input.disabled = !selected;
 
             if (selected) {
-                if (changedCheckbox === checkbox && input.dataset.initialized !== "true") {
+                if (
+                    changedCheckbox === checkbox &&
+                    input.dataset.initialized !== "true"
+                ) {
                     input.value = "1";
                 }
 
                 input.dataset.initialized = "true";
+
                 const quantity = parseInt(input.value, 10);
-                if (Number.isFinite(quantity) && quantity >= 0) total += quantity;
+
+                if (
+                    Number.isFinite(quantity) &&
+                    quantity >= 0
+                ) {
+                    total += quantity;
+                }
+
                 count++;
             }
         });
@@ -332,6 +896,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     sizeOptions.addEventListener("click", function (event) {
         const button = event.target.closest("[data-remove-size]");
+
         if (button) {
             event.preventDefault();
             removeSize(button.dataset.removeSize);
